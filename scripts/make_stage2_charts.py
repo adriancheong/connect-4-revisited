@@ -1,7 +1,7 @@
 """Draw the diagrams and charts used in docs/stage-2/.
 
 Run from the repository root:
-    pip install -e ".[plots]"
+    uv sync --locked --all-extras   (see the README; this includes matplotlib)
     python scripts/make_stage2_charts.py
 
 Every chart is generated from the real code in src/connect4/numpy_nn, so the

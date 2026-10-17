@@ -14,7 +14,7 @@ New to neural networks? Start with page 0. It has a picture of a network, everyd
 | 3 | Hidden layers and backpropagation (coming) | Wiring neurons into layers, and finding which way to turn every dial inside the network |
 | 4 | Spotting winning moves in Connect 4 (coming) | Turning a board into numbers, training on generated positions, testing on positions the network has never seen |
 
-To regenerate the charts: `pip install -e ".[plots]"`, then `python scripts/make_stage2_charts.py`.
+To regenerate the charts (after the setup in the main README): `python scripts/make_stage2_charts.py`.
 
 ## Later stages
 

@@ -6,13 +6,14 @@ The original project taught two bots to play Connect 4 by storing a score for ev
 
 ## Setup
 
-Needs Python 3.11 or newer.
+Needs Python 3.11 or newer, and [uv](https://docs.astral.sh/uv/), a fast Python package installer. Install uv once with `pip install uv` (or `brew install uv` on a Mac).
 
 ```bash
-python -m venv .venv
+uv sync --locked --all-extras    # creates .venv with the exact versions in uv.lock
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -e ".[dev]"
 ```
+
+Run `source .venv/bin/activate` again in each new terminal before using the commands below.
 
 ## Play
 
@@ -38,6 +39,14 @@ Other options: `--seed N` makes bot games repeatable, `--no-color` turns off col
 pytest
 ruff check .
 ```
+
+## Dependencies and supply-chain safety
+
+- **What the project uses** is listed in `pyproject.toml`: numpy to run, plus pytest and ruff (the `dev` extra) and matplotlib (the `plots` extra) for development.
+- **`uv.lock` pins the exact version of every package**, including the ones those packages pull in, each with a SHA-256 checksum. `uv sync --locked` installs exactly those versions, refuses any download whose checksum doesn't match, and stops if the lock file is out of date with `pyproject.toml`.
+- **7-day cooldown:** `exclude-newer = "7 days"` under `[tool.uv]` in `pyproject.toml` makes uv ignore any release published in the last 7 days when it picks versions. Most malicious releases are caught and removed within days.
+- **To update on purpose:** run `uv lock --upgrade`, review the version changes in `uv.lock`, run the tests, then commit.
+- `pip install -e ".[dev,plots]"` also works, but pip ignores both the lock file and the cooldown.
 
 ## Code layout
 

@@ -17,6 +17,11 @@ plots = ["matplotlib>=3.8"]
 [project.scripts]
 connect4 = "connect4.cli:main"
 
+[tool.uv]
+# Supply-chain safety: when choosing package versions, ignore anything published
+# in the last 7 days. Most malicious releases are caught and removed within days.
+exclude-newer = "7 days"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
