@@ -44,6 +44,36 @@ Zoom in on one circle. A neuron works like a judge weighing evidence:
 
 That's all a neuron does. Every neuron in every network does just this. The power comes from connecting many of them, and from setting the dials well.
 
+## What is a "guess"?
+
+You put an input into the network, the numbers flow through it, and a number comes out the other end. That output is the network's **guess** (textbook: *prediction*).
+
+For example, a board goes in, and out comes "0.9 for column 1": the network's guess that playing column 1 wins.
+
+It's called a guess because at the start the dials are random, so the output really is a random guess. Training makes the guesses better and better, but even a well-trained network is still estimating; it isn't looking anything up.
+
+## Where do the right answers come from?
+
+To know a guess is wrong, you need the right answer to compare it with. **During training, every input must come with its right answer already known.** In the flashcard picture, someone has to write the answer on the back of every card. (Textbooks call this *supervised learning*, and the answers *labels*.)
+
+There are three common places the right answers come from:
+
+1. **A rule a computer can already check.** In step 4, the input is a Connect 4 board and the right answer is "which columns win right now". The game engine from stage 1 finds that exactly: it tries each column and checks for four in a row. So we can make as many cards as we like, all with correct answers.
+
+   *Why train a network if the computer already knows the rule?* Because it's practice with answers we can trust completely. The interesting part is whether the network can work the rule out from examples alone, without ever being told it.
+
+2. **People write the answers.** For example, thousands of photos labelled "cat" or "dog" by hand, or emails people marked as spam.
+
+3. **Wait and see what happens.** In stage 4, nobody knows the right answer to "how good is this board?". But you can play the game to the end and see who won. The result (win = 1, loss = 0, draw = 0.5) becomes the right answer for the boards in that game. **That is exactly what your FYP did.** The bots made their own flashcards by playing each other. (Textbooks call this *reinforcement learning*.)
+
+In pages 1 and 2 the cards are tiny made-up examples, and we wrote the answers ourselves.
+
+### After training, there's no answer to compare with
+
+Once a network is trained, you use it on new inputs where you **don't** know the answer. That's the whole point.
+
+So how do you know you can trust it? Before you start, set aside some cards with known answers and never let the network practise on them. After training, test it on those, like an exam with questions the student hasn't seen. If it gets those right, it has learned the rule rather than memorised the cards.
+
 ## How a network learns: flashcards
 
 Training is like studying with flashcards:
@@ -84,11 +114,14 @@ You don't need to memorise these. Come back here whenever a word is unclear.
 | **Weight** | A dial on a connection: how much to listen to that input, and whether it counts for or against. |
 | **Bias** | A neuron's starting lean, before it looks at any input. Also a dial. |
 | **Squash function** (textbook: **sigmoid**, a kind of **activation function**) | Turns any number into a confidence between 0 and 1. |
-| **Output / guess / prediction** | The number the network gives back: its answer. |
+| **Output / guess / prediction** | The number that comes out when you put an input in. It's the network's answer, which may be right or wrong. |
 | **Layer** | A column of neurons. Inputs on the left, output on the right, hidden layers in between. |
 | **Hidden layer** | A layer in the middle. "Hidden" just means you don't see its numbers directly. |
 | **Example / flashcard** (textbook: **training example**) | One question with its right answer. |
-| **Answer** (textbook: **target** or **label**) | The right answer on the back of the card. |
+| **Answer** (textbook: **target** or **label**) | The right answer on the back of the card. It must be known before training, from a rule, from people, or from what happened (e.g. who won). |
+| **Supervised learning** | Learning from cards whose right answers are already known. Steps 1 to 4 of stage 2. |
+| **Reinforcement learning** | Learning where the answers come from what happens later, e.g. playing to the end and seeing who won. Your FYP, and stage 4. |
+| **Test cards** (textbook: **test set**) | Cards with known answers that the network never practises on, kept back to check it at the end, like an exam. |
 | **Error** (textbook: **loss**) | How far off a guess was. **Nothing to do with losing a game.** 0 means exactly right. These notes say "error". |
 | **Slope** (textbook: **gradient**) | For one dial: if you turn it up a little, does the error go up or down, and how much? Tells you which way is downhill. |
 | **Gradient descent** | Turn every dial a small step downhill, then repeat. This is how networks learn. |
