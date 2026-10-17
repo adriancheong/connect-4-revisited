@@ -47,15 +47,17 @@ ruff check .
 | `src/connect4/players.py` | Human and bot players, all with `choose_move(board) -> column` |
 | `src/connect4/game.py` | Runs a game and records every position |
 | `src/connect4/cli.py` | Terminal display and command-line options |
+| `src/connect4/numpy_nn/` | Stage 2: neural networks written from scratch in NumPy |
+| `scripts/make_stage2_charts.py` | Draws the charts in `docs/stage-2/` |
 
 ## Learning path
 
-See [`notes/`](notes/README.md).
+Step-by-step notes live in [`docs/`](docs/README.md). Start with [Stage 2, step 1: One neuron, by hand](docs/stage-2/01-one-neuron-by-hand.md).
 
 | Stage | Build | Status |
 |---|---|---|
 | 1 | Playable game, human or bot on either side | Done |
-| 2 | A neural network written by hand in NumPy | Next |
+| 2 | A neural network written by hand in NumPy | In progress (steps 1-2 of 4 done) |
 | 3 | The same network in PyTorch, then a convolutional network | |
 | 4 | A bot that teaches itself by self-play | |
 | 5 | Optional: AlphaZero-style bot | |
