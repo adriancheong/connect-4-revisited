@@ -4,11 +4,14 @@ Step-by-step notes on building and training neural networks, using Connect 4 as 
 
 ## Stage 2: A neural network from scratch (NumPy)
 
+New to neural networks? Start with page 0. It has a picture of a network, everyday analogies, a list of every term in plain English, and how to read the charts.
+
 | Step | Page | What you learn |
 |---|---|---|
-| 1 | [One neuron, by hand](stage-2/01-one-neuron-by-hand.md) | What a neuron is, and exactly how one training step adjusts its weights: loss, slopes (gradients), gradient descent, the chain rule |
-| 2 | [Training a neuron on many examples](stage-2/02-training-a-neuron.md) | Averaging over a dataset, watching weights settle, the learning rate, and why one neuron can't learn XOR |
-| 3 | Hidden layers and backpropagation (coming) | Wiring neurons into layers, and finding the slope of every weight inside the network |
+| 0 | [Start here: the big picture](stage-2/00-start-here.md) | What a neural network is and looks like, how it learns, the words you'll meet, how to read the charts |
+| 1 | [One neuron, by hand](stage-2/01-one-neuron-by-hand.md) | One neuron makes a guess, measures its error, and turns its dials once, with numbers you can check |
+| 2 | [Training a neuron on many examples](stage-2/02-training-a-neuron.md) | Learning a rule from a deck of flashcards, the step size, and why one neuron can't learn XOR |
+| 3 | Hidden layers and backpropagation (coming) | Wiring neurons into layers, and finding which way to turn every dial inside the network |
 | 4 | Spotting winning moves in Connect 4 (coming) | Turning a board into numbers, training on generated positions, testing on positions the network has never seen |
 
 To regenerate the charts: `pip install -e ".[plots]"`, then `python scripts/make_stage2_charts.py`.

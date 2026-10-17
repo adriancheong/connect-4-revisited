@@ -1,140 +1,186 @@
 # Step 2: Training a neuron on many examples
 
-**Goal:** go from one example to a whole dataset, watch the weights settle over hundreds of steps, see what the learning rate does, and find the limit of a single neuron.
+**Read first:** [Start here](00-start-here.md) and [Step 1](01-one-neuron-by-hand.md).
+
+**Goal:** go from one flashcard to a whole deck, watch the dials settle over many rounds, see what the step size does, and find something one neuron can't learn.
 
 **Code:** `train()` in [`src/connect4/numpy_nn/neuron.py`](../../src/connect4/numpy_nn/neuron.py). The charts come from [`scripts/make_stage2_charts.py`](../../scripts/make_stage2_charts.py).
 
 ---
 
-## 1. The dataset: OR
+## 1. The deck of flashcards: OR
 
-Two on/off inputs. The target is **OR**: 1 if either input is on.
+Each card has two inputs that are either off (0) or on (1). The right answer follows a rule called **OR**: "1 if either input is on".
 
-| x1 | x2 | target |
+| Input 1 | Input 2 | Right answer |
 |---|---|---|
 | 0 | 0 | 0 |
 | 0 | 1 | 1 |
 | 1 | 0 | 1 |
 | 1 | 1 | 1 |
 
-Why such a tiny problem? You can see everything: 4 examples, 3 numbers to learn. The Connect 4 version comes in step 4, and the mechanics are exactly the same.
+That's the whole deck: 4 cards. The neuron isn't told the rule; it only sees the cards. Can it work the rule out?
 
-## 2. Many examples: average the slopes
+Why such a tiny problem? So you can see everything: 4 cards, 3 dials. The Connect 4 version (step 4) works exactly the same way, just with more cards and more dials.
 
-In step 1 there was one example, and each step moved the weights to fix it. Now there are four, and they want different things: `(0, 0)` wants the output pushed down, the other three want it pushed up. A step that fixes one example could make the others worse.
+## 2. Many cards: let every card vote
 
-So each step works out the slopes for every example, **averages** them, and takes one step using the average. Every example gets a vote. From `train()`:
+In step 1 there was one card, and each round turned the dials to fix it. Now there are four, and they disagree: card `(0, 0)` wants the guess pushed **down**, the other three want it pushed **up**. Turning the dials to fix one card could make the others worse.
+
+So each round:
+1. Work out the slopes for **every** card, as in step 1.
+2. **Average** them.
+3. Take one step using the average.
+
+Every card gets a vote, and the dials move in the direction that helps the most cards the most.
+
+In code (from `train()`):
 
 ```python
-for step in range(steps):
+for round_number in range(rounds):
     total_weight_slopes = np.zeros_like(weights)
     total_bias_slope = 0.0
-    for x, target in zip(inputs, targets):
-        weight_slopes, bias_slope = gradients(weights, bias, x, target)  # step 1's function
+    for x, answer in zip(inputs, answers):  # for every card...
+        weight_slopes, bias_slope = slopes(weights, bias, x, answer)  # ...step 1's slopes
         total_weight_slopes += weight_slopes
         total_bias_slope += bias_slope
 
+    # average the votes, then take one step downhill
     weights = weights - learning_rate * total_weight_slopes / len(inputs)
     bias = bias - learning_rate * total_bias_slope / len(inputs)
 ```
 
-The starting weights are small random numbers. Here they come out as `w1 = 0.06`, `w2 = -0.07`, `b = 0`, so every prediction starts near 0.5.
+The dials start as small random numbers (here `w1 = 0.06`, `w2 = -0.07`, `b = 0`), so at first every guess is about 0.5: no idea.
 
 ## 3. Watching it learn
 
-Predictions before and after 1,000 steps, with learning rate 1:
+The neuron's guesses before training and after 1,000 rounds (step size 1):
 
-| x1 | x2 | target | before | after |
+| Input 1 | Input 2 | Right answer | Guess before | Guess after |
 |---|---|---|---|---|
 | 0 | 0 | 0 | 0.500 | 0.081 |
 | 0 | 1 | 1 | 0.483 | 0.950 |
 | 1 | 0 | 1 | 0.516 | 0.950 |
 | 1 | 1 | 1 | 0.499 | 1.000 |
 
-![Average loss falling over 1,000 training steps](images/02-or-loss.png)
+It worked it out: close to 0 where the answer is 0, close to 1 where the answer is 1.
 
-The loss falls fast at first, then more and more slowly: 0.25 at the start, 0.21 after 1 step, 0.13 after 10, 0.038 after 100, and 0.003 after 1,000. The same pattern as step 1: big slopes far from the answer, small slopes close to it.
+### The learning curve
 
-![w1, w2 and the bias changing over training](images/02-or-weights.png)
+![Learning curve: the average error drops steeply in the first rounds, then flattens out close to zero](images/02-learning-curve.png)
 
-What the neuron learned:
+**How to read this chart:**
+- **Across the bottom:** training rounds, i.e. how much practice so far.
+- **Up the side:** the average error over the 4 cards. Lower is better.
 
-- `w1` and `w2` both climb to 5.37. They end up equal because OR treats both inputs the same way. Nobody told it that; it found it in the data. (The two lines start slightly apart and quickly merge.)
-- The bias first rises, then sinks to -2.43. Early on, three of the four examples want the output higher, so everything goes up, the bias included. Once `w1` and `w2` have taken over the job of pushing the output up, the bias's job becomes holding `(0, 0)` down.
+The error starts at 0.25, when the neuron is guessing about 0.5 for everything. It falls steeply at first, then more and more slowly: 0.21 after 1 round, 0.13 after 10, 0.038 after 100, and 0.003 after 1,000.
 
-Read the final weights as a rule:
+Why that shape? Early on the guesses are far off, the slopes are steep, and each step makes a big difference. As the guesses get close, the slopes flatten and the steps shrink. It's like learning a new skill: rapid progress at first, then slow polishing.
+
+### The dials
+
+![The dials during training: w1 and w2 rise together to about 5.4, while the bias rises briefly then sinks to about -2.4](images/02-or-dials.png)
+
+**How to read this chart:**
+- **Across the bottom:** training rounds, as before.
+- **Up the side:** the setting of each dial. Blue and orange are the two weights, green is the bias.
+
+What happened:
+- **`w1` and `w2` rise together to 5.37.** The blue line is hidden under the orange one because they end up identical. That's because OR treats both inputs the same way. Nobody told the neuron this; it found it in the cards.
+- **The bias goes up briefly, then sinks to -2.43.** At first, three of the four cards want the guess higher, so everything goes up, the bias included. Once the two weights have taken over the job of pushing the guess up, the bias's job becomes holding card `(0, 0)` down.
+
+The finished dials can be read as a rule:
 
 ```
-both off:  z = -2.43                    → sigmoid → 0.08   (off)
-one on:    z = 5.37 - 2.43       = 2.94 → sigmoid → 0.95   (on)
-both on:   z = 5.37 + 5.37 - 2.43 = 8.31 → sigmoid → 1.00   (on)
+both inputs off:  total = -2.43                      → squash → 0.08  (no)
+one input on:     total = 5.37 - 2.43        = 2.94  → squash → 0.95  (yes)
+both inputs on:   total = 5.37 + 5.37 - 2.43 = 8.31  → squash → 1.00  (yes)
 ```
 
-The bias holds the output down until at least one input switches on. That is OR, written as three numbers.
+The bias holds the answer at "no" until at least one input switches on. That is the OR rule, stored in three numbers.
 
-The outputs never quite reach 0 or 1. The weights keep growing slowly and the loss keeps creeping down for as long as you train. In practice you stop when it's good enough.
+The guesses never reach exactly 0 or 1. The dials keep creeping outwards and the error keeps creeping down for as long as you train. In practice you stop when it's good enough.
 
-## 4. The learning rate: how big a step
+## 4. The step size
 
-The same training with four different learning rates:
+How far should the dials turn each round? Here is the same training with four different step sizes:
 
-![Loss over training for learning rates 0.1, 1, 10 and 100](images/02-learning-rates.png)
+![Error over training for step sizes 0.1, 1, 10 and 100: the first three fall at different speeds, but 100 stays flat at 0.25](images/02-step-sizes.png)
 
-- **0.1:** steady, but slow. After 1,000 steps it has only reached where learning rate 1 was after 100.
+**How to read this chart:** four learning curves on one chart, one per step size. Darker blue means a bigger step.
+
+- **0.1, small steps:** steady but slow. After 1,000 rounds it has only reached where step size 1 was after 100.
 - **1 and 10:** faster.
-- **100:** stuck from the very first step. That step is so large that all three numbers jump to about 12.5, and the neuron now outputs 1.00 for every input, including `(0, 0)`. Remember the second factor from step 1, "how responsive the neuron is": out at 1.00 the sigmoid is completely flat, so that factor is almost 0, every slope is almost 0, and the weights barely move again. The loss sits at 0.25 forever.
+- **100, giant steps:** the error never moves from 0.25. The flat line at the top.
 
-Too small is slow. Too big can overshoot into a place training can't get out of. Choosing the learning rate is one of the main practical skills in training networks; stage 3 introduces optimisers that adjust it automatically.
+**What went wrong with 100?** Think back to walking downhill in fog. With giant strides, the very first step flings you right off the hillside onto a huge flat plain. On flat ground you can't feel any tilt, so you don't know which way to go, and you never move again.
 
-## 5. What one neuron can't do: XOR
+In numbers: the first step turns all three dials up to about 12.5. Now the neuron's total is huge for every card, so it squashes to 1.00 for all of them, including `(0, 0)`, which should be 0. Out at 1.00 the squash function is completely flat, so the second gear ratio from step 1 ("how responsive the neuron is") is almost 0. Every slope is almost 0, and the dials stop moving.
 
-**XOR** means 1 if exactly one input is on:
+The lesson: steps that are too small are slow, and steps that are too big can land you somewhere training can't escape. Choosing the step size is one of the main practical skills of training networks. In stage 3 we'll use methods that adjust it automatically.
 
-| x1 | x2 | target |
+## 5. Something one neuron can't learn: XOR
+
+A new rule, **XOR**: "1 if **exactly one** input is on". It differs from OR only on the last card:
+
+| Input 1 | Input 2 | Right answer |
 |---|---|---|
 | 0 | 0 | 0 |
 | 0 | 1 | 1 |
 | 1 | 0 | 1 |
-| 1 | 1 | 0 |
+| 1 | 1 | **0** |
 
-Same code, same settings. The loss never drops below 0.25, every prediction ends at 0.50, and all three numbers end at about 0. The neuron gives up.
+Same code, same settings, 1,000 rounds. The result: every guess ends at 0.50, the error stays at 0.25, and all three dials end at about 0. The neuron gives up.
 
-![The neuron's output over the input square, after training on OR and on XOR](images/02-or-vs-xor.png)
+![Colour maps of the neuron's answer over all inputs: for OR a straight boundary separates red from blue; for XOR the whole map is pale grey](images/02-or-vs-xor.png)
 
-The colours show the neuron's output for every point in the square, red near 0 and blue near 1. For OR, a single straight boundary (the pale band) separates the 0 from the 1s.
+**How to read this chart.** Each square shows the neuron's answer for *every* possible pair of inputs, not just the four cards.
+- **Across the bottom:** input 1. **Up the side:** input 2.
+- **Colour:** the neuron's answer. Red means "no" (near 0), blue means "yes" (near 1), pale means "not sure" (near 0.5).
+- **Dots:** the four flashcards. Filled dots should be "yes", hollow dots "no". The labels show the right answer ("want") and the neuron's actual answer ("got").
 
-**A single straight line is the only boundary one neuron can draw.** The formula `z = w1·x1 + w2·x2 + b` is the equation of a straight line: `z` is positive on one side and negative on the other.
+**Left, OR:** a straight pale line divides the square. Red ("no") is below it, where card `(0, 0)` is. Blue ("yes") is above it, where the other three are. All four cards land on the correct side.
 
-For XOR no straight line works. The 1s are at opposite corners, and so are the 0s. Any line that puts both 1s on one side also puts a 0 there. The best a single neuron can do is hedge at 0.5 everywhere, and that's what gradient descent found: the four examples' pushes cancel each other out.
+**Right, XOR:** all pale grey: "not sure" everywhere.
+
+### Why one neuron can't do XOR
+
+**A single neuron can only split its inputs with one straight line:** "no" on one side, "yes" on the other. That comes from how it works: multiply, add up, squash. Changing the dials moves and tilts the line, but it's always one straight line.
+
+Look at where XOR's "yes" cards are: at **opposite corners**, `(0, 1)` and `(1, 0)`. The "no" cards are at the other two corners. Try to draw one straight line with both "yes" corners on one side and both "no" corners on the other. You can't. Any line that puts both "yes" corners together also puts a "no" corner with them.
+
+So the best a single neuron can do is hedge: say 0.5 for everything. That's what training found, because the four cards' votes cancel each other out.
 
 ### Why this matters for Connect 4
 
-"Can I win by playing here?" depends on combinations: three of my pieces in a line, **and** the fourth cell empty, **and** the cell below it filled so a piece would land there. One neuron can't capture "this and this, but not that", for the same reason it can't do XOR.
+"Can I win by playing here?" depends on **combinations**: three of my pieces in a line, **and** the fourth cell empty, **and** something underneath it so the piece lands there. A single neuron can't handle combinations like "this and this, but not that", for the same reason it can't do XOR.
 
-The fix is more neurons, in layers. Each neuron in a **hidden layer** draws its own line, and a neuron in the next layer combines them. Two lines are enough for XOR. That's step 3, along with **backpropagation**, the method for finding the slopes of weights buried inside a network.
+The fix is more neurons, in layers. Each neuron in a **hidden layer** draws its own line, and the output neuron combines them. Two lines are enough for XOR. That's step 3, along with **backpropagation**, the way to find the slopes for dials buried in the middle of a network.
 
 ## Try it yourself
+
+Open Python in the project folder (type `python`) and paste:
 
 ```python
 import numpy as np
 from connect4.numpy_nn.neuron import INPUTS, predict, train
 
-and_targets = np.array([0, 0, 0, 1.0])  # AND: 1 only if both inputs are on
-weights, bias, history = train(INPUTS, and_targets)
-print(weights, bias, history[-1].loss)
-print([round(float(predict(weights, bias, x)), 3) for x in INPUTS])
+and_answers = np.array([0, 0, 0, 1.0])  # AND: 1 only if both inputs are on
+weights, bias, history = train(INPUTS, and_answers)
+print("dials:", weights, "bias:", bias)
+print("guesses:", [round(float(predict(weights, bias, x)), 3) for x in INPUTS])
 ```
 
-- **AND:** before running it, guess the signs of the final weights and bias. How should they differ from OR's?
-- **XOR with learning rate 50:** `train(INPUTS, np.array([0, 1, 1, 0.0]), learning_rate=50)`. It ends up getting 3 of the 4 right, and the 4th completely wrong. The loss is still 0.25, the same as hedging. A different dead end, reached by a different path.
-- **Different starting weights:** pass `seed=1`, `seed=2`, and so on. Does OR always end at the same place?
+- **AND** means "1 only if both inputs are on". Before running it, guess: will the bias end up more negative or less negative than OR's -2.43? (Hint: AND needs to stay "no" even when one input is on.)
+- **XOR with giant steps:** `train(INPUTS, np.array([0, 1, 1, 0.0]), learning_rate=50)`. This time it gets 3 of the 4 cards right and the 4th completely wrong. The error is still 0.25, the same as hedging. It's stuck in a different dead end.
+- **Different random starting dials:** add `seed=1`, `seed=2` and so on to `train(...)` for OR. Does it always end up in the same place?
 
 ## Summary
 
-- With many examples, each step averages the slopes from every example, so all of them get a vote.
-- The weights settle into values you can read as a rule.
-- The learning rate is the step size: too small is slow, too big can get stuck.
-- One neuron can only draw one straight line. Anything that needs combinations needs layers of neurons.
+- With many flashcards, each round averages the slopes from every card, so every card gets a vote.
+- The dials settle into values you can read as a rule.
+- The step size matters: too small is slow, too big can get stuck for good.
+- One neuron can only draw one straight line. Rules that need combinations need layers of neurons.
 
 ---
 

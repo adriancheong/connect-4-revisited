@@ -52,7 +52,7 @@ ruff check .
 
 ## Learning path
 
-Step-by-step notes live in [`docs/`](docs/README.md). Start with [Stage 2, step 1: One neuron, by hand](docs/stage-2/01-one-neuron-by-hand.md).
+Step-by-step notes live in [`docs/`](docs/README.md). Start with [Start here: the big picture](docs/stage-2/00-start-here.md).
 
 | Stage | Build | Status |
 |---|---|---|

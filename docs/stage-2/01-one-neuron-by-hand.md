@@ -1,125 +1,130 @@
 # Step 1: One neuron, by hand
 
-**Goal:** see exactly how one training step adjusts the weights, using numbers small enough to check on paper.
+**Read first:** [Start here: the big picture](00-start-here.md). It explains the words used below.
+
+**Goal:** watch one neuron make a guess, measure how wrong it is, and turn its dials once, using numbers you can check with a calculator.
 
 **Code:** [`src/connect4/numpy_nn/neuron.py`](../../src/connect4/numpy_nn/neuron.py). Run `python -m connect4.numpy_nn.neuron` to print every number on this page.
 
 ---
 
-## 1. What a neuron is
+## 1. The neuron
 
-A neuron takes some numbers in and gives one number out.
+![One neuron: inputs 1.0 and 0.5 are multiplied by dials 0.2 and -0.4, added up with a bias of 0, then squashed into a guess of 0.5](images/01-neuron.png)
 
-```
-input x1 ── × w1 ──┐
-                   ├──► z = w1·x1 + w2·x2 + b ──► sigmoid(z) ──► prediction (0 to 1)
-input x2 ── × w2 ──┘
-```
+Reading the picture from left to right:
 
-- Each input is multiplied by a **weight**. The weight says how much that input matters, and which way it pushes: a positive weight pushes the output up, a negative weight pushes it down.
-- The results are added up, plus a **bias** `b`. The bias is the neuron's lean before it sees any input.
-- The total, `z`, can be any number. The **sigmoid** function squashes it into the range 0 to 1:
+1. **Two inputs** come in: `x1 = 1.0` and `x2 = 0.5`.
+2. Each is multiplied by its **dial** (weight): `w1 = 0.2` and `w2 = -0.4`.
+3. The neuron **adds them up**, plus its starting lean, the **bias** `b = 0`.
+4. The total is **squashed** into a number between 0 and 1. That's the neuron's **guess**.
 
-```
-z:            -4     -2      0      2      4
-sigmoid(z):  0.02   0.12   0.50   0.88   0.98
-```
+The squash function turns any total into a confidence:
 
-The weights and the bias are the only things that change during training. Everything the neuron "knows" is stored in those few numbers.
+| Total going in | -4 | -2 | 0 | 2 | 4 |
+|---|---|---|---|---|---|
+| **Confidence coming out** | 0.02 | 0.12 | 0.50 | 0.88 | 0.98 |
 
-Compare this with your FYP: there, knowledge was one stored score per board position. In a neural network it is stored in the weights, and the same weights are used for every input. That is why a network can give an answer for an input it has never seen.
+Big positive totals come out near 1 ("yes"). Big negative totals come out near 0 ("no"). A total of 0 comes out as 0.5 ("no idea").
 
-A **network** is many neurons wired together, where the outputs of one layer become the inputs of the next. Step 3 builds that. This page sticks to a single neuron.
+The dials (`w1`, `w2`) and the bias (`b`) are the only things that change during training. Everything the neuron "knows" lives in those three numbers.
 
-## 2. The example
+## 2. The flashcard
 
-One training example: two inputs, and the answer we want the neuron to give.
+One flashcard to learn from:
 
-| | value |
-|---|---|
-| input `x1` | 1.0 |
-| input `x2` | 0.5 |
-| target (the right answer) | 1 |
+- **Front (the inputs):** 1.0 and 0.5
+- **Back (the right answer):** 1, meaning "yes"
 
-The neuron starts with these weights. Normally they start random; these are picked to keep the arithmetic easy.
+These are made-up numbers, chosen so the arithmetic is easy. The point is to see the mechanics. Connect 4 comes in step 4.
 
-| | value |
-|---|---|
-| `w1` | 0.2 |
-| `w2` | -0.4 |
-| `b` | 0 |
+The dials start at `w1 = 0.2`, `w2 = -0.4`, `b = 0`. Normally they start random; these were picked to keep the sums simple.
 
-## 3. Make a prediction (the "forward pass")
+## 3. Step A: make a guess
 
 ```
-z = w1 × x1 + w2 × x2 + b
-  = 0.2 × 1.0 + (-0.4) × 0.5 + 0
-  = 0.2 - 0.2
-  = 0
+total = w1 × x1 + w2 × x2 + b
+      = 0.2 × 1.0 + (-0.4) × 0.5 + 0
+      = 0.2 - 0.2
+      = 0
 
-prediction = sigmoid(0) = 0.5
+guess = squash(0) = 0.5
 ```
 
-The neuron says 0.5, meaning it has no idea. We wanted 1.
+The neuron says 0.5: "no idea". The right answer is 1.
 
-## 4. Measure how wrong it is (the "loss")
-
-```
-loss = (prediction - target)²
-     = (0.5 - 1)²
-     = 0.25
-```
-
-The loss is a single number for "how wrong". Squaring makes it always positive, and makes big misses count much more than small ones. A loss of 0 means a perfect prediction.
-
-**Training means changing the weights to make the loss smaller.** The question is which way to change each one.
-
-## 5. Which way should each weight move? The nudge test
-
-For each weight, ask: *if I nudge it up a little, does the loss go up or down, and by how much?*
-
-Try it on `w1`. Nudge it from 0.2 to 0.201, keep everything else the same, and redo steps 3 and 4:
+## 4. Step B: how wrong was it? (the error)
 
 ```
-z          = 0.201 × 1.0 + (-0.4) × 0.5 + 0  = 0.001
-prediction = sigmoid(0.001)                  = 0.50025
-loss       = (0.50025 - 1)²                  = 0.24975
+error = (guess - answer)²
+      = (0.5 - 1)²
+      = 0.25
 ```
 
-The loss went from 0.25000 down to 0.24975, a change of -0.00025, for a nudge of +0.001:
+**The error is a score for how wrong the guess was.** 0 means exactly right; bigger means more wrong. (Textbooks call it the *loss*. It has nothing to do with losing a game.)
+
+Why square the difference?
+- It makes the error positive whether the guess was too high or too low. Both are wrong.
+- It makes big misses count much more than small ones. A miss of 0.5 scores 0.25, but a miss of 0.1 scores only 0.01.
+
+**The whole goal of training is to make this number smaller.** The question is which way to turn each dial.
+
+## 5. Step C: which way should each dial turn? (the nudge test)
+
+**Analogy:** tuning an old radio. You turn the knob a hair and listen. Is the static better or worse? That tells you which way to keep turning.
+
+Do the same with `w1`. Turn it up a hair, from 0.2 to 0.201, keep everything else the same, and redo the guess and the error:
 
 ```
-slope of w1 = change in loss / size of nudge
-            = -0.00025 / 0.001
+total = 0.201 × 1.0 + (-0.4) × 0.5 + 0  = 0.001
+guess = squash(0.001)                   = 0.50025
+error = (0.50025 - 1)²                  = 0.24975
+```
+
+The error dropped from 0.25000 to 0.24975, a change of -0.00025, from a nudge of 0.001. Divide one by the other:
+
+```
+slope of w1 = change in error ÷ size of nudge
+            = -0.00025 ÷ 0.001
             = -0.25
 ```
 
-The same test for the other two:
+That number is the **slope**. Doing the same test on all three:
 
-| | nudge | loss after | slope |
+| Dial | Nudge | Error after | Slope |
 |---|---|---|---|
 | `w1` | 0.2 → 0.201 | 0.24975 | -0.25 |
 | `w2` | -0.4 → -0.399 | 0.249875 | -0.125 |
 | `b` | 0 → 0.001 | 0.24975 | -0.25 |
 
-This slope is called the **gradient**. How to read it:
+**How to read a slope:**
+- **The sign gives the direction.** Negative means turning this dial *up* makes the error *smaller*, so turn it up. Positive means turn it down.
+- **The size says how much this dial matters right now.** `w2`'s slope is half of `w1`'s because `w2`'s input (0.5) is half of `w1`'s input (1.0), so `w2` has less effect on the total.
 
-- **The sign gives the direction.** Negative means increasing this weight lowers the loss, so increase it. Positive means decrease it.
-- **The size says how much this weight matters right now.** `w2`'s slope is half of `w1`'s because its input (0.5) is half of `w1`'s input (1.0), so `w2` has less effect on `z`.
+### The same thing as a picture
 
-![Loss as w1 changes, with the slope at the starting point](images/01-loss-vs-w1.png)
+![The error for every setting of dial w1, with the current position and the tilt of the curve marked](images/01-error-landscape.png)
 
-The blue curve is the loss for every possible value of `w1`, with `w2` and `b` held fixed. The orange line is the slope at the starting point (`w1 = 0.2`). It tilts down to the right, so moving right (increasing `w1`) goes downhill. Training is walking downhill on curves like this one, for every weight at once.
+**How to read this chart.** This is the hillside from the fog analogy, seen from the side.
+- **Across the bottom:** every possible setting of dial `w1`. The other dials stay where they are.
+- **Up the side:** the error you would get with `w1` at that setting. Lower is better.
+- **The blue curve** is the ground.
+- **The orange dot** is where `w1` is now: setting 0.2, error 0.25.
+- **The orange line** is the tilt of the ground right at the dot, i.e. the slope of -0.25. It slopes down to the right.
 
-## 6. Take a step downhill (gradient descent)
+So moving right (turning `w1` up) is downhill. If you could see the whole curve, you'd see the error keeps falling as `w1` goes up. But the neuron can't see the whole curve; it can only feel the tilt where it's standing. That's why it takes small steps.
 
-Move every weight a small step in the opposite direction to its slope:
+## 6. Step D: turn the dials (one step downhill)
+
+Turn every dial a small step **against** its slope:
 
 ```
-new weight = old weight - learning rate × slope
+new dial = old dial - step size × slope
 ```
 
-The **learning rate** sets the size of the step. Here it is 1:
+Why the minus sign? The slope points the way the error *increases*, which is uphill. We want to go the other way.
+
+The **step size** (textbook: *learning rate*) controls how far to turn. Here it's 1:
 
 ```
 w1 = 0.2  - 1 × (-0.25)  = 0.45
@@ -127,107 +132,121 @@ w2 = -0.4 - 1 × (-0.125) = -0.275
 b  = 0    - 1 × (-0.25)  = 0.25
 ```
 
-Check whether that helped, by redoing the prediction with the new weights:
+Did it help? Make the guess again with the new dials:
 
 ```
-z          = 0.45 × 1.0 + (-0.275) × 0.5 + 0.25 = 0.5625
-prediction = sigmoid(0.5625)                    = 0.637
-loss       = (0.637 - 1)²                       = 0.132
+total = 0.45 × 1.0 + (-0.275) × 0.5 + 0.25 = 0.5625
+guess = squash(0.5625)                     = 0.637
+error = (0.637 - 1)²                       = 0.132
 ```
 
-The prediction moved from 0.5 toward 1, and the loss nearly halved, from 0.25 to 0.132. That is one step of training. This method is called **gradient descent**: find the slopes (gradients), step downhill (descent).
+The guess moved from 0.5 toward the right answer of 1, and the error nearly halved, from 0.25 to 0.132. **That is one round of training.** This method is called **gradient descent**: find the slopes, step downhill.
 
 ## 7. Repeat
 
-The same four moves again and again. This is the output of `python -m connect4.numpy_nn.neuron`:
+The same four steps, ten times over. This is the output of `python -m connect4.numpy_nn.neuron`:
 
 ```
- step     w1      w2      b    prediction   loss
-   0   0.200  -0.400   0.000    0.500     0.2500
-   1   0.450  -0.275   0.250    0.637     0.1317
-   2   0.618  -0.191   0.418    0.719     0.0789
-   3   0.731  -0.134   0.531    0.768     0.0540
-   4   0.814  -0.093   0.614    0.799     0.0403
-   5   0.879  -0.061   0.679    0.822     0.0319
-   6   0.931  -0.035   0.731    0.838     0.0262
-   7   0.975  -0.013   0.775    0.851     0.0222
-   8   1.013   0.006   0.813    0.862     0.0192
-   9   1.046   0.023   0.846    0.870     0.0169
-  10   1.075   0.037   0.875    0.877     0.0150
+ round    w1      w2      b      guess    error
+    0   0.200  -0.400   0.000    0.500    0.2500
+    1   0.450  -0.275   0.250    0.637    0.1317
+    2   0.618  -0.191   0.418    0.719    0.0789
+    3   0.731  -0.134   0.531    0.768    0.0540
+    4   0.814  -0.093   0.614    0.799    0.0403
+    5   0.879  -0.061   0.679    0.822    0.0319
+    6   0.931  -0.035   0.731    0.838    0.0262
+    7   0.975  -0.013   0.775    0.851    0.0222
+    8   1.013   0.006   0.813    0.862    0.0192
+    9   1.046   0.023   0.846    0.870    0.0169
+   10   1.075   0.037   0.875    0.877    0.0150
 ```
 
-Each step is smaller than the one before. As the prediction gets closer to 1 the slopes shrink, so the steps shrink too. Training is fast at first and slows down as it closes in on the answer.
+Things to notice:
+- The **guess** climbs toward 1 every round.
+- The **error** falls every round.
+- The steps get **smaller** each round. As the guess gets closer to the answer the slopes shrink, so the dials move less. Training is fast at first and slows down as it closes in.
 
-## 8. The shortcut: the chain rule
+## 8. The shortcut: gear ratios (the chain rule)
 
-The nudge test works, but it costs one extra prediction for every weight. With 3 weights that's fine. The network in stage 4 will have tens of thousands of weights and train for millions of steps, so nudging each weight one at a time would be far too slow.
+The nudge test works, but it costs one extra guess for every dial. With 3 dials that's fine. The stage 4 network will have tens of thousands of dials and train for millions of rounds, so nudging each dial one at a time would be far too slow.
 
-Calculus gives the exact slope without any nudging. The loss depends on `w1` through a chain of simple steps:
+There's a shortcut that gives the exact slope of every dial in one go.
 
-```
-w1  ──►  z  ──►  prediction  ──►  loss
-```
-
-Each link has its own easy slope, and the **chain rule** says the slope of the whole chain is the link slopes multiplied together:
-
-| Link | Its slope | Value here | What it means |
-|---|---|---|---|
-| prediction → loss | `2 × (prediction - target)` | 2 × (0.5 - 1) = **-1** | how wrong the prediction is, and in which direction |
-| z → prediction | `prediction × (1 - prediction)` | 0.5 × 0.5 = **0.25** | how strongly the sigmoid responds at this point |
-| w1 → z | `x1` | **1.0** | how big the input attached to this weight is |
+**Analogy: a chain of gears.** Turning dial `w1` turns the *total*, which turns the *guess*, which turns the *error*:
 
 ```
-slope of w1 = -1 × 0.25 × 1.0 = -0.25     (nudge test: -0.25 ✓)
-slope of w2 = -1 × 0.25 × 0.5 = -0.125    (nudge test: -0.125 ✓)
-slope of b  = -1 × 0.25 × 1   = -0.25     (nudge test: -0.25 ✓)
+w1  ──►  total  ──►  guess  ──►  error
 ```
 
-For `b` the last link is 1, because the bias is added straight into `z`, like an input that is always 1.
+If you know the gear ratio of each pair (how much the next one turns when this one turns), you can multiply them together to get how much the last gear turns when you turn the first. No experiment needed.
 
-Where do the link slopes come from? They are standard results: the slope of `(p - t)²` is `2(p - t)`, the slope of the sigmoid is `sigmoid × (1 - sigmoid)`, and in `z = w1·x1 + ...`, increasing `w1` by 1 increases `z` by `x1`. You don't need to derive them yourself; the nudge test confirms each one. The two methods agree, which is exactly what the program prints first:
+The three gear ratios, right now:
+
+| Gear pair | Ratio here | Plain meaning |
+|---|---|---|
+| `w1` → total | **1.0** (the input `x1`) | The dial's effect is scaled by the input it's attached to |
+| total → guess | **0.25** | How responsive the squash function is at this point |
+| guess → error | **-1** | How wrong the guess is, and in which direction |
+
+Multiply them:
+
+```
+slope of w1 = 1.0 × 0.25 × (-1) = -0.25     (nudge test said -0.25 ✓)
+slope of w2 = 0.5 × 0.25 × (-1) = -0.125    (nudge test said -0.125 ✓)
+slope of b  = 1   × 0.25 × (-1) = -0.25     (nudge test said -0.25 ✓)
+```
+
+For `w2`, the first ratio is its own input, 0.5. For the bias it's 1, because the bias is added straight into the total.
+
+In textbooks, multiplying gear ratios along a chain is called the **chain rule**. Each ratio comes from a short formula, shown in the code below; you don't need to derive them. The program checks that both methods agree:
 
 ```
 Slopes at the start, two ways:
   by nudging 0.001:  w1 -0.2499  w2 -0.1250  b -0.2499
-  by chain rule:     w1 -0.2500  w2 -0.1250  b -0.2500
+  by gear ratios:    w1 -0.2500  w2 -0.1250  b -0.2500
 ```
 
-(The nudge test is a tiny bit off because the curve bends slightly within the nudge. The chain rule is exact.)
+(The nudge test is a hair off because the curve bends slightly within the nudge. The gear-ratio method is exact.)
 
-### What the three factors tell you
+### What the three ratios say about how the dials get adjusted
 
-This is the answer to "how does adjusting the weights work". Each weight's change is the product of three things:
+This is the heart of how a network learns. How much each dial is turned depends on three things multiplied together:
 
-1. **How wrong the prediction was.** If the prediction is already right, this factor is 0 and nothing changes. Networks only learn from mistakes.
-2. **How responsive the neuron is.** Near 0 or 1 the sigmoid is almost flat, this factor is close to 0, and learning stalls. Step 2 shows this going badly wrong.
-3. **How big the input was.** A weight attached to an input of 0 gets a slope of 0: it played no part in the mistake, so it isn't changed. Blame is shared out according to how much each weight contributed.
+1. **How wrong the guess was.** If the guess is already right, this is 0 and nothing changes. The network only learns from its mistakes.
+2. **How responsive the neuron is.** When the squash function is already near 0 or 1, it's almost flat, this ratio is close to 0, and learning stalls. Step 2 shows this going badly wrong.
+3. **How big the dial's input was.** A dial attached to an input of 0 gets a slope of 0. It played no part in the mistake, so it isn't changed.
+
+**Analogy: a group project that went wrong.** The correction is shared out according to who contributed. Someone who did a lot gets a big correction, someone who did a little gets a small one, and someone who wasn't involved (input 0) gets none.
 
 ## 9. In code
 
-The chain rule version, from `neuron.py`:
+The gear-ratio method, from `neuron.py`:
 
 ```python
-def gradients(weights, bias, x, target):
-    z = np.dot(weights, x) + bias
-    prediction = sigmoid(z)
+def slopes(weights, bias, x, answer):
+    total = np.dot(weights, x) + bias
+    guess = sigmoid(total)
 
-    dloss_dprediction = 2 * (prediction - target)  # how wrong, and in which direction
-    dprediction_dz = prediction * (1 - prediction)  # how strongly the sigmoid responds here
-    dloss_dz = dloss_dprediction * dprediction_dz
+    # Ratio 1: how much the error moves when the guess moves. Says how wrong, and which way.
+    error_per_guess = 2 * (guess - answer)
+    # Ratio 2: how much the guess moves when the total moves. Says how responsive the squash is.
+    guess_per_total = guess * (1 - guess)
+    error_per_total = error_per_guess * guess_per_total
 
-    # z = w1*x1 + w2*x2 + b, so nudging weight i changes z by x_i, and nudging b changes z by 1.
-    weight_slopes = dloss_dz * np.asarray(x, dtype=float)
-    bias_slope = dloss_dz
+    # Ratio 3: total = w1*x1 + w2*x2 + b, so turning weight i moves the total by x_i,
+    # and turning the bias moves it by 1.
+    weight_slopes = error_per_total * np.asarray(x, dtype=float)
+    bias_slope = error_per_total
     return weight_slopes, bias_slope
 ```
 
-`dloss_dz` is the usual way to write "the slope of the loss with respect to z". The `d` comes from calculus notation.
+`np.dot(weights, x)` is NumPy's way of writing `w1×x1 + w2×x2`. `sigmoid` is the squash function.
 
-And one training step:
+And one round of training:
 
 ```python
-def train_step(weights, bias, x, target, learning_rate):
-    weight_slopes, bias_slope = gradients(weights, bias, x, target)
+def train_step(weights, bias, x, answer, learning_rate):
+    weight_slopes, bias_slope = slopes(weights, bias, x, answer)
     new_weights = weights - learning_rate * weight_slopes
     new_bias = bias - learning_rate * bias_slope
     return new_weights, new_bias
@@ -235,18 +254,18 @@ def train_step(weights, bias, x, target, learning_rate):
 
 ## Summary
 
-Training a neuron is a loop of four moves:
+Training a neuron is a loop of four steps:
 
-1. **Predict:** the forward pass.
-2. **Measure the error:** the loss.
-3. **Find each weight's slope:** the gradient.
-4. **Step each weight downhill:** gradient descent.
+1. **Guess:** multiply inputs by dials, add up, squash.
+2. **Measure the error:** how far off was the guess?
+3. **Find each dial's slope:** which way is downhill for that dial?
+4. **Turn each dial a small step downhill.**
 
-Every neural network, including the ones in stages 3 to 5, trains with this loop. What changes is how many neurons there are, and how the slopes are worked out through many layers. That method is **backpropagation**, which is the chain rule above applied link by link back through the network (step 3).
+Every neural network, including the ones in stages 3 to 5, learns with this same loop. Bigger networks just have more dials, and work out the slopes by passing the gear ratios back through every layer (backpropagation, page 3).
 
 ## Try it yourself
 
-Open a Python shell in the project (`python`) and paste:
+Open Python in the project folder (type `python`) and paste:
 
 ```python
 import numpy as np
@@ -255,17 +274,17 @@ from connect4.numpy_nn.neuron import predict, train_step
 weights, bias = np.array([0.2, -0.4]), 0.0
 x = np.array([1.0, 0.5])
 
-for step in range(5):
-    weights, bias = train_step(weights, bias, x, target=0.0, learning_rate=1.0)
+for round_number in range(5):
+    weights, bias = train_step(weights, bias, x, answer=0.0, learning_rate=1.0)
     print(weights, bias, predict(weights, bias, x))
 ```
 
-Things to try, and to predict before you run them:
+This time the right answer is 0 ("no"). Before running each one, guess what will happen:
 
-- With `target=0.0`, which way do the weights move?
-- Set `x = np.array([1.0, 0.0])`. Does `w2` change at all? Why not?
-- Try `learning_rate=10.0`, then `100.0`. What happens to the prediction?
+- Which way do the dials move now?
+- Change `x` to `np.array([1.0, 0.0])`. Does `w2` change at all? Why not?
+- Try `learning_rate=10.0`. How many rounds does it take to get close to 0?
 
 ---
 
-**Next:** [Step 2: Training a neuron on many examples](02-training-a-neuron.md)
+**Previous:** [Start here](00-start-here.md) · **Next:** [Step 2: Training a neuron on many examples](02-training-a-neuron.md)
