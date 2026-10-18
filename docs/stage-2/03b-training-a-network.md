@@ -181,12 +181,12 @@ You now have a complete, working neural network, trained by backpropagation and 
 Open Python in the project folder (after `source .venv/Scripts/activate`) and paste:
 
 ```python
+import numpy as np
 from connect4.numpy_nn import network as nw
 
 net, history = nw.train(nw.XOR_INPUTS, nw.XOR_ANSWERS, hidden=2, seed=6)
 print("final error:", round(history[-1], 4))
-guesses = nw.predict(net, nw.XOR_INPUTS)[:, 0]
-print("guesses:", ", ".join(f"{g:.2f}" for g in guesses))
+print("guesses:", np.round(nw.predict(net, nw.XOR_INPUTS)[:, 0], 2))
 ```
 
 Before running each one, guess:
