@@ -107,6 +107,18 @@ Train from other random starting dials and the network often builds a **differen
 
 All three get every card right. There isn't one correct set of dials; there are many, and the random start decides which one training finds.
 
+![Colour maps for random starts 1, 3 and 7: one row per start, with hidden A, hidden B and the output side by side. Each row's hidden neurons draw different lines, but every output gets all four cards right](images/03-xor-circuits.png)
+
+**How to read this chart.** One row per random start, with the same three panels as the chart in section 4: hidden A, hidden B, then the output. The label down the left of each row summarises that circuit. Colours and dots work as before: red is "no", blue is "yes", filled dots should be "yes", and the number under each dot is that neuron's output for the card.
+
+- **Start 1:** A covers the top-left corner, B covers the bottom-right corner, and the output is blue in both.
+- **Start 3:** A covers only the top-right corner (AND), B covers only the bottom-left corner (NOR), and the output is blue wherever *neither* fires: a band across the middle.
+- **Start 7:** A covers everything except the top-right corner (NAND), B covers the bottom-left corner (NOR), and the output is blue where A fires and B doesn't: the same middle band.
+
+**Look at the middle of each output square.** All three agree on the four cards, but not on the points in between. At (0.5, 0.5), start 1 says **no** (0.01) while starts 3 and 7 say **yes** (0.99). Nothing in the training cards says what the answer there should be, so each circuit fills the gap its own way.
+
+That matters later. With Connect 4, most boards the network sees after training will be ones it never practised on. How it handles those depends on the circuit training happened to build, which is why the network is always tested on boards it hasn't seen.
+
 ## 6. When training gets stuck
 
 Now the orange line in the learning curve chart: **random start 6**. It drops to 0.125 and stays there forever. Its final guesses:

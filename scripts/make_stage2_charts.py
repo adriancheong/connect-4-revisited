@@ -647,6 +647,53 @@ def diagram_xor_trained_network() -> None:
     save(fig, "03-xor-trained-network.png")
 
 
+def chart_xor_circuits() -> None:
+    """Colour maps for three random starts that learned XOR with different circuits."""
+    from connect4.numpy_nn import network as nw
+
+    grid = np.linspace(-0.25, 1.25, 121)
+    xx, yy = np.meshgrid(grid, grid)
+    points = np.column_stack([xx.ravel(), yy.ravel()])
+    starts = [
+        (1, "A: (0,1) only · B: (1,0) only · yes if A or B"),
+        (3, "A: AND · B: NOR · yes if neither fires"),
+        (7, "A: NAND · B: NOR · yes if A and not B"),
+    ]
+
+    fig, axes = plt.subplots(3, 3, figsize=(8.6, 9.4), constrained_layout=True)
+    for row, (seed, summary) in enumerate(starts):
+        net, _ = nw.train(nw.XOR_INPUTS, nw.XOR_ANSWERS, hidden=2, learning_rate=2.0, seed=seed)
+        fwd = nw.forward(net, points)
+        cards = nw.forward(net, nw.XOR_INPUTS)
+        panels = [
+            ("Hidden A", fwd.hidden[:, 0], cards.hidden[:, 0]),
+            ("Hidden B", fwd.hidden[:, 1], cards.hidden[:, 1]),
+            ("Output (guess)", fwd.guesses[:, 0], cards.guesses[:, 0]),
+        ]
+        for col, (title, values, at_cards) in enumerate(panels):
+            ax = axes[row, col]
+            image = ax.imshow(
+                values.reshape(xx.shape), origin="lower", extent=(-0.25, 1.25, -0.25, 1.25),
+                cmap=DIVERGING, vmin=0, vmax=1,
+            )  # fmt: skip
+            for (x1, x2), answer, value in zip(nw.XOR_INPUTS, nw.XOR_ANSWERS, at_cards):
+                ax.plot(x1, x2, "o", markersize=6, color=INK if answer else SURFACE,
+                        markeredgecolor=INK, markeredgewidth=1.0)  # fmt: skip
+                offset = (0, 7 if x2 == 0 else -13)
+                ax.annotate(f"{value:.2f}", xy=(x1, x2), xytext=offset, textcoords="offset points",
+                            ha="center", fontsize=7, color=INK)  # fmt: skip
+            ax.set_title(f"Start {seed}: {title}", fontsize=9.5)
+            ax.set_xticks([0, 1])
+            ax.set_yticks([0, 1])
+            ax.tick_params(labelsize=8)
+            ax.grid(False)
+        axes[row, 0].set_ylabel(summary, fontsize=8.5, color=INK, labelpad=6)
+    bar = fig.colorbar(image, ax=axes, shrink=0.5, location="bottom", aspect=40)
+    bar.set_label("output (0 = no, 1 = yes)   ·   across: input 1   ·   up: input 2", color=INK_2)
+    bar.outline.set_visible(False)
+    save(fig, "03-xor-circuits.png")
+
+
 def main() -> None:
     diagram_network()
     diagram_connect4_network()
@@ -661,6 +708,7 @@ def main() -> None:
     chart_xor_maps()
     diagram_xor_network_shape()
     diagram_xor_trained_network()
+    chart_xor_circuits()
 
 
 if __name__ == "__main__":
