@@ -115,6 +115,7 @@ You don't need to memorise these. Come back here whenever a word is unclear.
 | **Bias** | A neuron's starting lean, before it looks at any input. Also a dial. |
 | **Total** (textbook: **weighted sum**, often written `z`) | A neuron's inputs × weights, added up, plus its bias. The number *before* the squash. |
 | **Squash function** (textbook: **sigmoid**, a kind of **activation function**) | Turns any number into a confidence between 0 and 1. |
+| **Steepness** (textbook: **derivative of the activation function**) | How much a neuron's output moves when its total moves a little: how steep the S-curve is at that point. For our squash it's `output × (1 − output)`, at most 0.25. One of the gear ratios used to work out a dial's slope. Pages 1 and 3a. |
 | **A neuron's output** (textbook: **activation**) | The squashed total: what the neuron passes on to the next layer. For the last neuron, this is the guess. |
 | **Output / guess / prediction** | The number that comes out when you put an input in. It's the network's answer, which may be right or wrong. |
 | **Layer** | A column of neurons. Inputs on the left, output on the right, hidden layers in between. |

@@ -99,7 +99,7 @@ The output neuron is just a single neuron whose inputs happen to be A and B. So 
 
 ```
 guess → error:  2 × (0.566 − 1)   = −0.869     (how wrong, and which way)
-total → guess:  0.566 × 0.434     =  0.246     (how responsive the squash is)
+total → guess:  0.566 × 0.434     =  0.246     (the squash's steepness: how responsive it is)
 output blame:   −0.869 × 0.246    = −0.213
 ```
 
@@ -122,7 +122,7 @@ A's dial ──► A's total ──► A's output ──► output total ──�
 We already know everything from "output total" onwards: that's the output blame, −0.213. We only need two more gear ratios for A:
 
 1. **A's output → output total.** The output total is `wOA × A + …`, so if A's output goes up by a hair, the output total goes up by `wOA` times that. **The ratio is the connecting weight, wOA = 0.5.**
-2. **A's total → A's output.** A's own squash steepness: `0.599 × 0.401 = 0.240`.
+2. **A's total → A's output.** A's own **steepness**, the same kind of ratio as the 0.246 above but for A: `output × (1 − output) = 0.599 × 0.401 = 0.240`.
 
 ```
 A's blame = output blame × wOA × A's steepness

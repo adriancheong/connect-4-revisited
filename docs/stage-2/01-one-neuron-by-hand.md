@@ -185,7 +185,7 @@ The three gear ratios, right now:
 | Gear pair | Ratio here | Plain meaning |
 |---|---|---|
 | `w1` → total | **1.0** (the input `x1`) | The dial's effect is scaled by the input it's attached to |
-| total → guess | **0.25** | How responsive the squash function is at this point |
+| total → guess | **0.25** | How responsive the squash function is at this point: its **steepness** |
 | guess → error | **-1** | How wrong the guess is, and in which direction |
 
 Multiply them:
@@ -213,7 +213,7 @@ Slopes at the start, two ways:
 This is the heart of how a network learns. How much each dial is turned depends on three things multiplied together:
 
 1. **How wrong the guess was.** If the guess is already right, this is 0 and nothing changes. The network only learns from its mistakes.
-2. **How responsive the neuron is.** When the squash function is already near 0 or 1, it's almost flat, this ratio is close to 0, and learning stalls. Step 2 shows this going badly wrong.
+2. **How responsive the neuron is** (the squash's **steepness**). When the squash function is already near 0 or 1, it's almost flat, this ratio is close to 0, and learning stalls. Step 2 shows this going badly wrong.
 3. **How big the dial's input was.** A dial attached to an input of 0 gets a slope of 0. It played no part in the mistake, so it isn't changed.
 
 **Analogy: a group project that went wrong.** The correction is shared out according to who contributed. Someone who did a lot gets a big correction, someone who did a little gets a small one, and someone who wasn't involved (input 0) gets none.
