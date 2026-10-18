@@ -6,14 +6,14 @@ The original project taught two bots to play Connect 4 by storing a score for ev
 
 ## Setup
 
-Needs Python 3.11 or newer, and [uv](https://docs.astral.sh/uv/), a fast Python package installer. Install uv once with `pip install uv` (or `brew install uv` on a Mac).
+Needs Python 3.11 or newer, and [uv](https://docs.astral.sh/uv/), a fast Python package installer. Install uv once with `pip install uv`.
 
 ```bash
 uv sync --locked --all-extras    # creates .venv with the exact versions in uv.lock
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
+source .venv/Scripts/activate    # Git Bash; in PowerShell: .venv\Scripts\activate
 ```
 
-Run `source .venv/bin/activate` again in each new terminal before using the commands below.
+Run `source .venv/Scripts/activate` (or `.venv\Scripts\activate` in PowerShell) again in each new terminal before using the commands below.
 
 ## Play
 

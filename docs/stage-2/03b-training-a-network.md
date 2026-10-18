@@ -136,7 +136,7 @@ You now have a complete, working neural network, trained by backpropagation and 
 
 ## Try it yourself
 
-Open Python in the project folder (after `source .venv/bin/activate`) and paste:
+Open Python in the project folder (after `source .venv/Scripts/activate`) and paste:
 
 ```python
 import numpy as np

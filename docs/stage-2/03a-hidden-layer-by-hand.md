@@ -244,7 +244,7 @@ Line by line, that's sections 4.1, 4.2 and 4.3. (`count` is the number of cards 
 
 ## Try it yourself
 
-Open Python in the project folder (after `source .venv/bin/activate`) and paste:
+Open Python in the project folder (after `source .venv/Scripts/activate`) and paste:
 
 ```python
 import numpy as np
