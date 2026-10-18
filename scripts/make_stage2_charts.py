@@ -198,10 +198,12 @@ def diagram_connect4_network() -> None:
     for x, y in [(x_in, 0.0), (x_hidden, -0.6)]:
         ax.text(x, y, "⋮", ha="center", va="center", fontsize=14, color=MUTED)
 
-    ax.text(x_in, 2.75, "42 inputs", ha="center", fontsize=10, weight="bold")
+    ax.text(x_in, 2.75, "84 inputs", ha="center", fontsize=10, weight="bold")
     ax.text(x_hidden, 2.75, "Hidden layer", ha="center", fontsize=10, weight="bold")
+    ax.text(x_hidden, 2.35, "(128 neurons)", ha="center", fontsize=8.5, color=INK_2)
     ax.text(x_out, 2.75, "7 outputs", ha="center", fontsize=10, weight="bold")
-    ax.text(x_in, -2.6, "one per cell", ha="center", va="top", fontsize=9, color=INK_2)
+    ax.text(x_in, -2.6, "two per cell:\nmine? opponent's?", ha="center", va="top", fontsize=9,
+            color=INK_2)  # fmt: skip
     ax.text(x_hidden, -2.6, "patterns it finds\nfor itself", ha="center", va="top", fontsize=9,
             color=INK_2)  # fmt: skip
     ax.text(x_out + 0.6, -2.6, "does playing this\ncolumn win right now?\n(0 = no, 1 = yes)",

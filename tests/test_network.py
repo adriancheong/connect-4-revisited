@@ -80,3 +80,25 @@ def test_identical_hidden_neurons_stay_identical_twins():
     assert net.hidden_weights[:, 0] == pytest.approx(net.hidden_weights[:, 1])
     assert net.hidden_biases[0] == pytest.approx(net.hidden_biases[1])
     assert history[-1] > 0.1  # acting as one neuron, it can't learn XOR
+
+
+def test_one_full_batch_epoch_equals_one_training_step():
+    start = nw.new_network(2, 2, 1, seed=0)
+    answers = nw.XOR_ANSWERS.reshape(-1, 1)
+    epochs_seen = []
+    batched = nw.train_in_batches(
+        start, nw.XOR_INPUTS, answers, learning_rate=2.0, epochs=1, batch_size=4,
+        after_each_epoch=lambda epoch, net: epochs_seen.append(epoch),
+    )  # fmt: skip
+    stepped = nw.train_step(start, nw.XOR_INPUTS, answers, learning_rate=2.0)
+    for a, b in zip(batched.dials(), stepped.dials()):
+        assert a == pytest.approx(b)
+    assert epochs_seen == [1]
+
+
+def test_save_and_load(tmp_path):
+    net = nw.new_network(3, 4, 2, seed=5)
+    nw.save(net, tmp_path / "net.npz")
+    loaded = nw.load(tmp_path / "net.npz")
+    for a, b in zip(net.dials(), loaded.dials()):
+        assert (a == b).all()

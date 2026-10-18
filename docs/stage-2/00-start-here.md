@@ -90,9 +90,9 @@ Step 4 is the clever part: with thousands of dials, how do you know which way to
 
 ## The Connect 4 network we'll build (step 4)
 
-![The Connect 4 network: a board of 42 cells feeds 42 inputs, then a hidden layer, then 7 outputs, one per column](images/00-connect4-network.png)
+![The Connect 4 network: a board of 42 cells feeds 84 inputs (two per cell), then a hidden layer of 128 neurons, then 7 outputs, one per column](images/00-connect4-network.png)
 
-- **42 inputs**, one for each cell of the board.
+- **84 inputs**, two for each of the 42 cells: "is my piece here?" and "is my opponent's piece here?" (each 0 or 1). Step 4a explains why two.
 - **A hidden layer** that finds useful patterns by itself, like "three in a row with a gap".
 - **7 outputs**, one per column, each answering: *"if I play here, do I win right now?"*
 
@@ -125,11 +125,14 @@ You don't need to memorise these. Come back here whenever a word is unclear.
 | **Supervised learning** | Learning from cards whose right answers are already known. Steps 1 to 4 of stage 2. |
 | **Reinforcement learning** | Learning where the answers come from what happens later, e.g. playing to the end and seeing who won. Your FYP, and stage 4. |
 | **Test cards** (textbook: **test set**) | Cards with known answers that the network never practises on, kept back to check it at the end, like an exam. |
+| **Memorising** (textbook: **overfitting**) | Doing well on the practice cards but badly on new ones: learning the cards instead of the rule. You spot it by comparing practice and test scores. Step 4b. |
 | **Error** (textbook: **loss**) | How far off a guess was. **Nothing to do with losing a game.** 0 means exactly right. These notes say "error". |
 | **Slope** (textbook: **gradient**) | For one dial: if you turn it up a little, does the error go up or down, and how much? Tells you which way is downhill. |
 | **Gradient descent** | Turn every dial a small step downhill, then repeat. This is how networks learn. |
 | **Step size** (textbook: **learning rate**) | How far you turn the dials each time. |
-| **Training round** (textbook: **training step**, sometimes **epoch**) | One cycle of: guess, measure the error, turn the dials. |
+| **Training round** (textbook: **training step**) | One cycle of: guess, measure the error, turn the dials. |
+| **Mini-batch** | A small handful of cards (e.g. 64) used for one training round, when the whole deck is too big to use every time. Step 4b. |
+| **Epoch** | One pass through the whole deck of practice cards. With mini-batches, one epoch is many training rounds. Step 4b. |
 | **Training** | Doing training rounds over and over until the error is small. |
 | **Forward pass** | Making a guess: numbers flow forward, from inputs to output. |
 | **Backpropagation** (or **backward pass**) | Working out every dial's slope by passing the blame backwards, from the output to the inputs. Page 3a. |

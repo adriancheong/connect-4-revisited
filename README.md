@@ -22,6 +22,7 @@ connect4                                          # two people, taking turns
 connect4 --p2 heuristic                           # you (X) against a bot (O)
 connect4 --p1 heuristic --p2 human                # the bot moves first
 connect4 --p1 random --p2 heuristic --games 1000  # bot vs bot, prints a results tally
+connect4 --p2 neural                              # you against the neural network (train it first, below)
 ```
 
 Type a column number (1-7) to drop a piece, or `q` to quit. `python -m connect4` works too.
@@ -30,6 +31,11 @@ Player types:
 - `human`: you, at the keyboard.
 - `random`: picks any legal column.
 - `heuristic`: wins if it can, blocks your win if it must, otherwise random.
+- `neural`: the same strategy, but it spots wins and threats with a neural network (stage 2). Train one first, which takes a few minutes:
+  ```bash
+  python -m connect4.numpy_nn.winning_moves    # saves models/winning-moves.npz
+  ```
+  Use `--model PATH` to play a network saved somewhere else.
 
 Other options: `--seed N` makes bot games repeatable, `--no-color` turns off coloured pieces.
 
@@ -57,7 +63,8 @@ ruff check .
 | `src/connect4/game.py` | Runs a game and records every position |
 | `src/connect4/cli.py` | Terminal display and command-line options |
 | `src/connect4/numpy_nn/` | Stage 2: neural networks written from scratch in NumPy |
-| `scripts/make_stage2_charts.py` | Draws the charts in `docs/stage-2/` |
+| `scripts/make_stage2_charts.py`, `make_stage2_step4_charts.py` | Draw the charts in `docs/stage-2/` and print the numbers the notes quote |
+| `models/` | Trained networks. Not committed: make your own with the command above |
 
 ## Learning path
 
@@ -66,7 +73,7 @@ Step-by-step notes live in [`docs/`](docs/README.md). Start with [Start here: th
 | Stage | Build | Status |
 |---|---|---|
 | 1 | Playable game, human or bot on either side | Done |
-| 2 | A neural network written by hand in NumPy | In progress (steps 1-3 of 4 done) |
+| 2 | A neural network written by hand in NumPy | Done |
 | 3 | The same network in PyTorch, then a convolutional network | |
 | 4 | A bot that teaches itself by self-play | |
 | 5 | Optional: AlphaZero-style bot | |

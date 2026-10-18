@@ -4,6 +4,7 @@ Examples:
     python -m connect4                                   # two humans
     python -m connect4 --p2 heuristic                    # you against a bot
     python -m connect4 --p1 random --p2 heuristic --games 1000
+    python -m connect4 --p2 neural                       # against the trained network (stage 2)
 """
 
 from __future__ import annotations
@@ -12,12 +13,14 @@ import argparse
 import os
 import random
 import sys
+from pathlib import Path
 
 from connect4.board import COLS, EMPTY, PLAYER_1, PLAYER_2, ROWS, SYMBOLS, Board, other_player
 from connect4.game import play_game
 from connect4.players import HeuristicPlayer, HumanPlayer, Player, QuitGame, RandomPlayer
 
-PLAYER_TYPES = ("human", "random", "heuristic")
+PLAYER_TYPES = ("human", "random", "heuristic", "neural")
+DEFAULT_MODEL = Path("models") / "winning-moves.npz"
 
 _COLORS = {PLAYER_1: "\033[1;31m", PLAYER_2: "\033[1;33m"}  # bold red X, bold yellow O
 _RESET = "\033[0m"
@@ -39,7 +42,9 @@ def render_board(board: Board, color: bool = False) -> str:
     return "\n".join(lines)
 
 
-def make_player(kind: str, seed: int | None = None) -> Player:
+def make_player(kind: str, seed: int | None = None, model: Path = DEFAULT_MODEL) -> Player:
+    if kind == "neural":
+        return _load_neural_player(model, seed)
     if kind == "human":
         return HumanPlayer()
     if kind == "random":
@@ -47,6 +52,19 @@ def make_player(kind: str, seed: int | None = None) -> Player:
     if kind == "heuristic":
         return HeuristicPlayer(seed)
     raise ValueError(f"unknown player type: {kind}")
+
+
+def _load_neural_player(model: Path, seed: int | None) -> Player:
+    # Imported here so the plain game never needs the neural network code.
+    from connect4.numpy_nn import network
+    from connect4.numpy_nn.winning_moves import NeuralPlayer
+
+    if not Path(model).exists():
+        raise SystemExit(
+            f"No trained network at {model}. Train one first (it takes a few minutes) with:\n"
+            "    python -m connect4.numpy_nn.winning_moves"
+        )
+    return NeuralPlayer(network.load(model), seed)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -63,6 +81,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--seed", type=int, help="random seed, to make bot games repeatable")
     parser.add_argument("--no-color", action="store_true", help="draw the board without colours")
+    parser.add_argument(
+        "--model", type=Path, default=DEFAULT_MODEL, help="trained network for the neural player"
+    )
     return parser
 
 
@@ -75,8 +96,8 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--games above 1 needs both players to be bots")
 
     seeds = random.Random(args.seed)
-    player1 = make_player(args.p1, seeds.randrange(2**32))
-    player2 = make_player(args.p2, seeds.randrange(2**32))
+    player1 = make_player(args.p1, seeds.randrange(2**32), args.model)
+    player2 = make_player(args.p2, seeds.randrange(2**32), args.model)
     labels = {PLAYER_1: f"X ({args.p1})", PLAYER_2: f"O ({args.p2})"}
     color = not args.no_color and sys.stdout.isatty() and "NO_COLOR" not in os.environ
 

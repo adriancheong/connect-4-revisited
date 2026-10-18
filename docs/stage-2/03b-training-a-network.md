@@ -197,4 +197,4 @@ Before running each one, guess:
 
 ---
 
-**Previous:** [Step 3a: A network with a hidden layer, by hand](03a-hidden-layer-by-hand.md) · **Next:** Step 4: Spotting winning moves in Connect 4 (coming)
+**Previous:** [Step 3a: A network with a hidden layer, by hand](03a-hidden-layer-by-hand.md) · **Next:** [Step 4a: Connect 4 boards into numbers](04a-boards-into-numbers.md)

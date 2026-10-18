@@ -13,9 +13,12 @@ New to neural networks? Start with page 0. It has a picture of a network, everyd
 | 2 | [Training a neuron on many examples](stage-2/02-training-a-neuron.md) | Learning a rule from a deck of flashcards, the step size, and why one neuron can't learn XOR |
 | 3a | [A network with a hidden layer, by hand](stage-2/03a-hidden-layer-by-hand.md) | Wiring neurons into layers, and backpropagation: passing the blame backwards to find which way to turn every dial |
 | 3b | [Training a network on XOR](stage-2/03b-training-a-network.md) | What the hidden neurons learn, different circuits from different starts, getting stuck in a local minimum |
-| 4 | Spotting winning moves in Connect 4 (coming) | Turning a board into numbers, training on generated positions, testing on positions the network has never seen |
+| 4a | [Connect 4 boards into numbers](stage-2/04a-boards-into-numbers.md) | Turning a board into 84 inputs, making 300,000 flashcards, keeping test positions back, measuring success fairly |
+| 4b | [Training on Connect 4](stage-2/04b-training-on-connect-4.md) | Mini-batches and epochs, memorising vs learning, what the hidden neurons discover, blocking, and playing against the network |
 
-To regenerate the charts (after the setup in the main README): `python scripts/make_stage2_charts.py`.
+To regenerate the charts (after the setup in the main README):
+- Steps 0–3: `python scripts/make_stage2_charts.py`
+- Step 4: `python scripts/make_stage2_step4_charts.py` (about 10 minutes, because it trains several networks)
 
 ## Later stages
 

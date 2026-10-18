@@ -201,6 +201,46 @@ def train(
     return net, history
 
 
+def train_in_batches(
+    net: Network,
+    inputs: np.ndarray,
+    answers: np.ndarray,
+    learning_rate: float,
+    epochs: int,
+    batch_size: int = 64,
+    seed: int = 0,
+    after_each_epoch=None,
+) -> Network:
+    """Train on a big deck, a small handful of cards (a "mini-batch") at a time.
+
+    Each round takes `batch_size` cards, averages their slopes and takes one step.
+    One pass through the whole deck is an "epoch". Before every epoch the deck is
+    shuffled, so the handfuls are different each time.
+
+    `after_each_epoch(epoch_number, net)` is called after every pass, for keeping
+    a record of how training is going.
+    """
+    rng = np.random.default_rng(seed)
+    for epoch in range(1, epochs + 1):
+        order = rng.permutation(len(inputs))  # shuffle the deck
+        for start in range(0, len(inputs), batch_size):
+            batch = order[start : start + batch_size]
+            net = train_step(net, inputs[batch], answers[batch], learning_rate)
+        if after_each_epoch is not None:
+            after_each_epoch(epoch, net)
+    return net
+
+
+def save(net: Network, path) -> None:
+    """Save a network's dials to a file. The dials are all there is to save."""
+    np.savez(path, *net.dials())
+
+
+def load(path) -> Network:
+    with np.load(path) as saved:
+        return Network(*(saved[f"arr_{i}"] for i in range(4)))
+
+
 # ---------------------------------------------------------------------------
 # The worked example from docs/stage-2/03a-hidden-layer-by-hand.md
 # ---------------------------------------------------------------------------
