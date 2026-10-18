@@ -130,9 +130,18 @@ Now the orange line in the learning curve chart: **random start 6**. It drops to
 | (1, 0) | 1 | 0.99 | 0.74 | 0.92 |
 | (1, 1) | 0 | **0.50** | 0.00 | 1.00 |
 
-Two cards right, two hedged at 0.5. **Look at the hidden outputs for (0, 1) and (1, 1): they're identical** (A = 0, B = 1). The output neuron receives exactly the same inputs for two cards that need opposite answers. It's the "same photo labelled cat and dog" situation you asked about: the best it can do is say 0.5 for both.
+Two cards right, two hedged at 0.5. **Look at the hidden outputs for (0, 1) and (1, 1): they're identical** (A = 0, B = 1), even though the cards themselves are different.
 
-To get out, the hidden neurons would have to change how they see those two cards. But every small change from here makes the error worse before it could get better: every direction nearby is uphill or flat. That's a **local minimum**: a hollow that isn't the deepest point, exactly as you described for your FYP.
+The hidden neurons did see a difference: their totals for the two cards are quite different.
+
+| Card | A's total | A's output | B's total | B's output |
+|---|---|---|---|---|
+| (0, 1) | −13.8 | 0.000001 | 8.6 | 0.99981 |
+| (1, 1) | −8.9 | 0.000139 | 12.3 | 0.99999 |
+
+But all those totals sit far out on the flat ends of the squash, which flattens them to "0" and "1". After the squash the two cards differ by about one ten-thousandth. The output neuron never sees the cards, only A's and B's outputs, so for two cards that need opposite answers it receives the same description. It's like two different photos (a cat and a dog) that both analysts describe in exactly the same words: the boss only reads the descriptions, so to her it's the same description labelled "cat" once and "dog" once, and the best she can do is say 0.5 for both. **The hidden layer has thrown away the difference.**
+
+To get out, the hidden neurons would have to change how they respond to those two cards. But their totals sit where the squash is almost perfectly flat (steepness between 0.000001 and 0.0002), so any blame passed back to A and B for those cards is multiplied by almost nothing, and their dials barely move. Every small change from here makes the error worse or leaves it flat. That's a **local minimum**: a hollow that isn't the deepest point, exactly as you described for your FYP.
 
 **How often does it happen?** I trained from 20 different random starts:
 
