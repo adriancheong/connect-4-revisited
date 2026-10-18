@@ -8,7 +8,19 @@
 
 ---
 
-## 1. The training loop
+## 1. The network
+
+It's the same shape as in step 3a: two inputs, two hidden neurons (A and B), and one output neuron.
+
+![The XOR network: inputs x1 and x2 each connect to hidden neurons A and B, which both connect to the output neuron. Every line is labelled with its weight's name, and every neuron with its bias](images/03-xor-network-shape.png)
+
+**How to read this picture.** Numbers flow left to right. Each line is one weight (a dial) and each neuron has one bias (also a dial), so there are 9 dials in total. Every input connects to every hidden neuron, and every hidden neuron connects to the output.
+
+Why only two hidden neurons? XOR needs two straight lines to separate its "yes" cards from its "no" cards, and each hidden neuron can draw one line. Two is the bare minimum. Section 6 shows what that costs.
+
+Unlike step 3a, the dials don't start at hand-picked values. They start as small random numbers (random start number 1), and training has to find good values for all 9.
+
+## 2. The training loop
 
 Nothing new here. It's step 2's loop with step 3a's backpropagation inside:
 
@@ -17,9 +29,9 @@ Nothing new here. It's step 2's loop with step 3a's backpropagation inside:
 3. Turn all 9 dials a step downhill.
 4. Repeat 10,000 times.
 
-The dials start as small random numbers (random start number 1). The step size is 2.
+The step size is 2.
 
-## 2. It learns XOR
+## 3. It learns XOR
 
 | Card | Right answer | Guess after training |
 |---|---|---|
@@ -39,9 +51,9 @@ Follow the **blue line** (start 1):
 - **Rounds 400–600: a sudden drop.** Once A and B have each found a useful job, the output neuron can combine them and the error falls fast: 0.19 at round 400, 0.07 at 500, 0.02 at 600.
 - **After that, polishing:** 0.003 by round 1,000, 0.0001 by round 10,000.
 
-A long plateau followed by a sudden drop is common when training networks, so a flat start doesn't necessarily mean training has failed. The orange line is a different story; it's in section 5.
+A long plateau followed by a sudden drop is common when training networks, so a flat start doesn't necessarily mean training has failed. The orange line is a different story; it's in section 6.
 
-## 3. What the hidden neurons learned
+## 4. What the hidden neurons learned
 
 Each hidden neuron's output for each card, after training:
 
@@ -64,7 +76,16 @@ Each hidden neuron's output for each card, after training:
 - **Hidden B** draws one straight line, cutting off the bottom-right corner.
 - **The output** combines them: blue in both corners, red in the band between. That's **two lines**, which is what XOR needed and a single neuron couldn't draw.
 
-**The trained dials say the same thing:**
+**The trained network, drawn out:**
+
+![The trained XOR network: A has a strong negative weight from x1 and a strong positive weight from x2; B is the mirror image; both A and B connect to the output with strong positive weights, and the output's bias is -5](images/03-xor-trained-network.png)
+
+**How to read this picture.** Same layout as the first picture in section 1, now with the values training found. Blue lines count **for** (positive weight), orange lines count **against** (negative weight), and thicker lines are bigger dials. Follow one card through it. For (0, 1), only x2 is on:
+- A gets +5.9 from x2, plus its bias −3.3: a total of +2.6, so A **fires**.
+- B gets −6.6 from x2, plus its bias −3.6: a total of about −10, so B stays **off**.
+- The output gets A's output (0.93) × 10.2 ≈ +9.5 from A, almost nothing from B, plus its bias −5.0: a total of about +4.5, so it says **yes** (0.99).
+
+**The same dials as a table:**
 
 | Neuron | Dials | Reads as |
 |---|---|---|
@@ -74,7 +95,7 @@ Each hidden neuron's output for each card, after training:
 
 So the network built the circuit **(input 2 and not input 1) OR (input 1 and not input 2)**, which is exactly XOR. Nobody told it what A and B should do. Backpropagation worked out their jobs from the four flashcards.
 
-## 4. Different starts, different circuits
+## 5. Different starts, different circuits
 
 Train from other random starting dials and the network often builds a **different** circuit that works just as well. (Cards in the order (0,0), (0,1), (1,0), (1,1).)
 
@@ -86,7 +107,7 @@ Train from other random starting dials and the network often builds a **differen
 
 All three get every card right. There isn't one correct set of dials; there are many, and the random start decides which one training finds.
 
-## 5. When training gets stuck
+## 6. When training gets stuck
 
 Now the orange line in the learning curve chart: **random start 6**. It drops to 0.125 and stays there forever. Its final guesses:
 
@@ -111,7 +132,7 @@ To get out, the hidden neurons would have to change how they see those two cards
 
 With just 2 hidden neurons there's no spare capacity: both must land on exactly the right jobs. With a third neuron there are more routes downhill, so training almost never gets boxed in. This is why real networks have far more neurons than the bare minimum, and why the Connect 4 network will have many hidden neurons rather than a handful.
 
-## 6. Why the starting dials must be random
+## 7. Why the starting dials must be random
 
 What if both hidden neurons start with identical dials (everything 0.5)?
 

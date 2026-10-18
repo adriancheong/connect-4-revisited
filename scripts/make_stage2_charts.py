@@ -574,6 +574,79 @@ def chart_xor_maps() -> None:
     save(fig, "03-xor-maps.png")
 
 
+def _xor_labels(ax, title_y):
+    ax.text(0, title_y, "inputs", ha="center", fontsize=10, weight="bold")
+    ax.text(4.2, title_y, "hidden layer", ha="center", fontsize=10, weight="bold")
+    ax.text(8.4, title_y, "output", ha="center", fontsize=10, weight="bold")
+
+
+def diagram_xor_network_shape() -> None:
+    """The 2-2-1 network used for XOR, with every dial named."""
+    fig, ax = blank_canvas(8.2, 4.4, (-1.4, 12.6), (-3.6, 3.6))
+    _network_skeleton(ax)
+    node(ax, *_POS["x1"], radius=0.6, fill="#f0efec", edge=AXIS, text="x1", size=10)
+    node(ax, *_POS["x2"], radius=0.6, fill="#f0efec", edge=AXIS, text="x2", size=10)
+    node(ax, *_POS["A"], radius=0.6, text="A", size=11)
+    node(ax, *_POS["B"], radius=0.6, text="B", size=11)
+    node(ax, *_POS["O"], radius=0.7, text="output", size=9)
+    _edge_label(ax, "x1", "A", "wA1", t=0.5)
+    _edge_label(ax, "x2", "B", "wB2", t=0.5)
+    _edge_label(ax, "x2", "A", "wA2", t=0.25)
+    _edge_label(ax, "x1", "B", "wB1", t=0.25)
+    _edge_label(ax, "A", "O", "wOA", t=0.5, dy=0.25)
+    _edge_label(ax, "B", "O", "wOB", t=0.5, dy=-0.25)
+    ax.text(4.2, 2.15, "bias bA", ha="center", fontsize=8.5, color=INK_2)
+    ax.text(4.2, -2.2, "bias bB", ha="center", va="top", fontsize=8.5, color=INK_2)
+    ax.text(8.4, 0.95, "bias bO", ha="center", fontsize=8.5, color=INK_2)
+    _xor_labels(ax, 2.85)
+    ax.text(9.4, 0.15, "guess", fontsize=9, color=INK_2)
+    ax.text(9.4, -0.35, "(0 to 1)", fontsize=9, color=INK_2)
+    ax.text(4.2, -3.3, "9 dials: 6 weights (one per line) + 3 biases (one per neuron)",
+            ha="center", fontsize=9, color=INK)  # fmt: skip
+    save(fig, "03-xor-network-shape.png")
+
+
+def diagram_xor_trained_network() -> None:
+    """The XOR network after training (random start 1), with its learned dials."""
+    from connect4.numpy_nn import network as nw
+
+    net, _ = nw.train(nw.XOR_INPUTS, nw.XOR_ANSWERS, hidden=2, learning_rate=2.0, seed=1)
+    d = nw.named_dials(net)
+
+    fig, ax = blank_canvas(8.6, 5.4, (-1.4, 13.4), (-4.4, 4.2))
+    for a, b, name in [("x1", "A", "wA1"), ("x2", "A", "wA2"), ("x1", "B", "wB1"),
+                       ("x2", "B", "wB2"), ("A", "O", "wOA"), ("B", "O", "wOB")]:  # fmt: skip
+        (x1, y1), (x2, y2) = _POS[a], _POS[b]
+        value = d[name]
+        color = SERIES[0] if value > 0 else SERIES[1]
+        ax.plot([x1, x2], [y1, y2], color=color, linewidth=0.8 + 0.35 * abs(value), zorder=1,
+                solid_capstyle="round")  # fmt: skip
+    node(ax, *_POS["x1"], radius=0.6, fill="#f0efec", edge=AXIS, text="x1", size=10)
+    node(ax, *_POS["x2"], radius=0.6, fill="#f0efec", edge=AXIS, text="x2", size=10)
+    node(ax, *_POS["A"], radius=0.6, text="A", size=11)
+    node(ax, *_POS["B"], radius=0.6, text="B", size=11)
+    node(ax, *_POS["O"], radius=0.7, text="output", size=9)
+    _edge_label(ax, "x1", "A", f"wA1 {d['wA1']:+.1f}", t=0.5)
+    _edge_label(ax, "x2", "B", f"wB2 {d['wB2']:+.1f}", t=0.5)
+    _edge_label(ax, "x2", "A", f"wA2 {d['wA2']:+.1f}", t=0.25)
+    _edge_label(ax, "x1", "B", f"wB1 {d['wB1']:+.1f}", t=0.25)
+    _edge_label(ax, "A", "O", f"wOA {d['wOA']:+.1f}", t=0.5, dy=0.3)
+    _edge_label(ax, "B", "O", f"wOB {d['wOB']:+.1f}", t=0.5, dy=-0.3)
+    ax.text(4.2, 2.15, f"bias bA {d['bA']:+.1f}", ha="center", fontsize=8.5, color=INK_2)
+    ax.text(4.2, 2.65, "fires only for card (0, 1)", ha="center", fontsize=9, weight="bold")
+    ax.text(4.2, -2.2, f"bias bB {d['bB']:+.1f}", ha="center", va="top", fontsize=8.5,
+            color=INK_2)  # fmt: skip
+    ax.text(4.2, -2.7, "fires only for card (1, 0)", ha="center", va="top", fontsize=9,
+            weight="bold")  # fmt: skip
+    ax.text(8.4, 0.95, f"bias bO {d['bO']:+.1f}", ha="center", fontsize=8.5, color=INK_2)
+    ax.text(9.4, 0.15, "says yes if", fontsize=9, weight="bold")
+    ax.text(9.4, -0.35, "A or B fires", fontsize=9, weight="bold")
+    _xor_labels(ax, 3.4)
+    ax.text(4.2, -3.75, "blue line = counts for (+)     orange line = counts against (−)     "
+            "thicker = bigger dial", ha="center", fontsize=8.5, color=INK_2)  # fmt: skip
+    save(fig, "03-xor-trained-network.png")
+
+
 def main() -> None:
     diagram_network()
     diagram_connect4_network()
@@ -586,6 +659,8 @@ def main() -> None:
     diagram_network_backward()
     chart_xor_learning_curves()
     chart_xor_maps()
+    diagram_xor_network_shape()
+    diagram_xor_trained_network()
 
 
 if __name__ == "__main__":
