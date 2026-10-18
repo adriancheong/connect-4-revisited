@@ -274,7 +274,7 @@ for name, value in nw.named_dials(slopes).items():
 Before running each one, guess:
 
 - With the card **(0, 1)**, which dials get a slope of exactly 0 this time?
-- Change `answer` to `np.array([[0.0]])` with the original card `(1, 0)`. Which way do A's dials move now, and B's?
+- Keep the card `(0, 1)` but change `answer` to `np.array([[0.0]])`. Which way do A's dials move now, and B's? Do the dials that were 0 change?
 - Make a copy of the network with `wOB` set to 0 and look at B's dials. What happens to B's blame? Does `wOB` itself still get a slope? (Hint: what is `wOB`'s input?)
 
 ```python
