@@ -410,6 +410,165 @@ def chart_or_vs_xor() -> None:
     save(fig, "02-or-vs-xor.png")
 
 
+# ---------------------------------------------------------------------------
+# Step 3: a network with a hidden layer
+# ---------------------------------------------------------------------------
+
+# Positions for the 2-2-1 network diagrams.
+_POS = {"x1": (0.0, 1.3), "x2": (0.0, -1.3), "A": (4.2, 1.3), "B": (4.2, -1.3), "O": (8.4, 0.0)}
+
+
+def _edge_label(ax, a, b, text, t=0.5, color=INK_2, dy=0.0):
+    (x1, y1), (x2, y2) = _POS[a], _POS[b]
+    x, y = x1 + t * (x2 - x1), y1 + t * (y2 - y1) + dy
+    box = {"boxstyle": "round,pad=0.2", "facecolor": SURFACE, "edgecolor": "none"}
+    ax.text(x, y, text, ha="center", va="center", fontsize=8.5, color=color, zorder=5, bbox=box)
+
+
+def _network_skeleton(ax):
+    for a, b in [("x1", "A"), ("x2", "A"), ("x1", "B"), ("x2", "B"), ("A", "O"), ("B", "O")]:
+        (x1, y1), (x2, y2) = _POS[a], _POS[b]
+        ax.plot([x1, x2], [y1, y2], color=AXIS, linewidth=1.2, zorder=1)
+
+
+def diagram_network_forward() -> None:
+    from connect4.numpy_nn import network as nw
+
+    net, card = nw.EXAMPLE, nw.EXAMPLE_CARD
+    fwd = nw.forward(net, card)
+    out_a, out_b = fwd.hidden[0]
+    guess = fwd.guesses[0, 0]
+    d = nw.named_dials(net)
+
+    fig, ax = blank_canvas(7.6, 4.2, (-1.4, 11.6), (-3.4, 3.3))
+    _network_skeleton(ax)
+    node(ax, *_POS["x1"], radius=0.6, fill="#f0efec", edge=AXIS, text="x1\n1.0", size=9)
+    node(ax, *_POS["x2"], radius=0.6, fill="#f0efec", edge=AXIS, text="x2\n0.0", size=9)
+    node(ax, *_POS["A"], radius=0.6, text=f"A\n{out_a:.3f}", size=9)
+    node(ax, *_POS["B"], radius=0.6, text=f"B\n{out_b:.3f}", size=9)
+    node(ax, *_POS["O"], radius=0.7, text=f"guess\n{guess:.3f}", size=9)
+
+    for a, b, name in [("x1", "A", "wA1"), ("x2", "B", "wB2")]:
+        _edge_label(ax, a, b, f"{name} = {d[name]:g}", t=0.5)
+    for a, b, name in [("x2", "A", "wA2"), ("x1", "B", "wB1")]:
+        _edge_label(ax, a, b, f"{name} = {d[name]:g}", t=0.25)
+    _edge_label(ax, "A", "O", f"wOA = {d['wOA']:g}", t=0.5, dy=0.25)
+    _edge_label(ax, "B", "O", f"wOB = {d['wOB']:g}", t=0.5, dy=-0.25)
+    ax.text(4.2, 2.25, f"bias bA = {d['bA']:g}", ha="center", fontsize=8.5, color=INK_2)
+    ax.text(4.2, -2.4, f"bias bB = {d['bB']:g}", ha="center", va="top", fontsize=8.5, color=INK_2)
+    ax.text(8.4, 0.95, f"bias bO = {d['bO']:g}", ha="center", fontsize=8.5, color=INK_2)
+
+    ax.text(0, 2.85, "inputs", ha="center", fontsize=10, weight="bold")
+    ax.text(4.2, 2.85, "hidden layer", ha="center", fontsize=10, weight="bold")
+    ax.text(8.4, 2.85, "output", ha="center", fontsize=10, weight="bold")
+    ax.text(10.2, 0.25, "answer 1", fontsize=9, color=INK_2)
+    ax.text(10.2, -0.3, f"error {(guess - 1) ** 2:.3f}", fontsize=9, color=INK_2)
+    arrow(ax, (1.0, -3.2), (7.4, -3.2), color=MUTED)
+    ax.text(4.2, -3.05, "forward: numbers flow this way", ha="center", va="bottom", fontsize=8,
+            color=MUTED)  # fmt: skip
+    save(fig, "03-network-forward.png")
+
+
+def diagram_network_backward() -> None:
+    from connect4.numpy_nn import network as nw
+
+    net, card = nw.EXAMPLE, nw.EXAMPLE_CARD
+    fwd = nw.forward(net, card)
+    out_a, out_b = fwd.hidden[0]
+    guess = fwd.guesses[0, 0]
+    d = nw.named_dials(net)
+    blame_o = 2 * (guess - 1) * guess * (1 - guess)
+    passed_a, passed_b = blame_o * d["wOA"], blame_o * d["wOB"]
+    blame_a = passed_a * out_a * (1 - out_a)
+    blame_b = passed_b * out_b * (1 - out_b)
+    up, down = SERIES[0], SERIES[1]
+
+    fig, ax = blank_canvas(7.6, 4.4, (-1.4, 11.6), (-3.6, 3.3))
+    _network_skeleton(ax)
+    node(ax, *_POS["x1"], radius=0.6, fill="#f0efec", edge=AXIS, text="x1\n1.0", size=9)
+    node(ax, *_POS["x2"], radius=0.6, fill="#f0efec", edge=AXIS, text="x2\n0.0", size=9)
+    node(ax, *_POS["A"], radius=0.6, edge=up, text=f"A\n{blame_a:+.4f}", size=9)
+    node(ax, *_POS["B"], radius=0.6, edge=down, text=f"B\n{blame_b:+.4f}", size=9)
+    node(ax, *_POS["O"], radius=0.7, edge=up, text=f"output\n{blame_o:+.3f}", size=9)
+
+    arrow(ax, (7.75, 0.45), (4.85, 1.1), color=up, width=1.6)
+    arrow(ax, (7.75, -0.45), (4.85, -1.1), color=down, width=1.6)
+    _edge_label(ax, "A", "O", f"× wOA ({d['wOA']:g})\n= {passed_a:+.3f}", t=0.55, dy=0.55)
+    _edge_label(ax, "B", "O", f"× wOB ({d['wOB']:g})\n= {passed_b:+.3f}", t=0.55, dy=-0.55)
+    ax.text(4.2, 2.25, f"× A's steepness {out_a * (1 - out_a):.3f}", ha="center", fontsize=8.5,
+            color=INK_2)  # fmt: skip
+    ax.text(4.2, -2.35, f"× B's steepness {out_b * (1 - out_b):.3f}", ha="center", va="top",
+            fontsize=8.5, color=INK_2)  # fmt: skip
+    ax.text(4.2, 2.85, "blame for each neuron", ha="center", fontsize=10, weight="bold")
+    ax.text(10.0, 0.55, "guess too low:", fontsize=8.5, color=up)
+    ax.text(10.0, 0.05, "push it up", fontsize=8.5, color=up)
+    ax.text(2.1, 1.75, "A's dials: turn up", ha="center", fontsize=8.5, color=up, weight="bold")
+    ax.text(2.1, -1.75, "B's dials: turn down", ha="center", va="top", fontsize=8.5, color=down,
+            weight="bold")  # fmt: skip
+    arrow(ax, (7.4, -3.4), (1.0, -3.4), color=MUTED)
+    ax.text(4.2, -3.25, "backward: blame flows this way", ha="center", va="bottom", fontsize=8,
+            color=MUTED)  # fmt: skip
+    save(fig, "03-network-backward.png")
+
+
+def chart_xor_learning_curves() -> None:
+    from connect4.numpy_nn import network as nw
+
+    fig, ax = plt.subplots(figsize=(6.4, 3.5))
+    top = 0.0
+    for seed, color, label in [(1, SERIES[0], "learned XOR"), (6, SERIES[1], "stuck")]:
+        _, history = nw.train(nw.XOR_INPUTS, nw.XOR_ANSWERS, hidden=2, learning_rate=2.0, seed=seed)
+        ax.plot(range(len(history)), history, color=color, label=f"random start {seed}")
+        label_line_end(
+            ax, len(history) - 1, history[-1], f"start {seed}: {label} ({history[-1]:.3f})"
+        )
+        top = max(top, history[0])
+    ax.set_title("Learning XOR with 2 hidden neurons, from two random starts")
+    ax.set_xlabel("training round (practice)")
+    ax.set_ylabel("average error (lower is better)")
+    ax.set_ylim(0, top * 1.05)
+    ax.legend(loc="upper right", bbox_to_anchor=(1.0, 0.85))
+    save(fig, "03-xor-learning-curves.png")
+
+
+def chart_xor_maps() -> None:
+    from connect4.numpy_nn import network as nw
+
+    net, _ = nw.train(nw.XOR_INPUTS, nw.XOR_ANSWERS, hidden=2, learning_rate=2.0, seed=1)
+    grid = np.linspace(-0.25, 1.25, 121)
+    xx, yy = np.meshgrid(grid, grid)
+    points = np.column_stack([xx.ravel(), yy.ravel()])
+    fwd = nw.forward(net, points)
+    cards = nw.forward(net, nw.XOR_INPUTS)
+    panels = [
+        ("Hidden neuron A", fwd.hidden[:, 0], cards.hidden[:, 0]),
+        ("Hidden neuron B", fwd.hidden[:, 1], cards.hidden[:, 1]),
+        ("Output (the guess)", fwd.guesses[:, 0], cards.guesses[:, 0]),
+    ]
+
+    fig, axes = plt.subplots(1, 3, figsize=(9.6, 3.6), constrained_layout=True)
+    for ax, (title, values, at_cards) in zip(axes, panels):
+        image = ax.imshow(
+            values.reshape(xx.shape), origin="lower", extent=(-0.25, 1.25, -0.25, 1.25),
+            cmap=DIVERGING, vmin=0, vmax=1,
+        )  # fmt: skip
+        for (x1, x2), answer, value in zip(nw.XOR_INPUTS, nw.XOR_ANSWERS, at_cards):
+            ax.plot(x1, x2, "o", markersize=8, color=INK if answer else SURFACE,
+                    markeredgecolor=INK, markeredgewidth=1.2)  # fmt: skip
+            ax.annotate(f"{value:.2f}", xy=(x1, x2), xytext=(0, 9 if x2 == 0 else -17),
+                        textcoords="offset points", ha="center", fontsize=8, color=INK)  # fmt: skip
+        ax.set_title(title)
+        ax.set_xlabel("input 1")
+        ax.set_ylabel("input 2")
+        ax.set_xticks([0, 1])
+        ax.set_yticks([0, 1])
+        ax.grid(False)
+    bar = fig.colorbar(image, ax=axes, shrink=0.8)
+    bar.set_label("output (0 = no, 1 = yes)", color=INK_2)
+    bar.outline.set_visible(False)
+    save(fig, "03-xor-maps.png")
+
+
 def main() -> None:
     diagram_network()
     diagram_connect4_network()
@@ -418,6 +577,10 @@ def main() -> None:
     chart_or_training()
     chart_step_sizes()
     chart_or_vs_xor()
+    diagram_network_forward()
+    diagram_network_backward()
+    chart_xor_learning_curves()
+    chart_xor_maps()
 
 
 if __name__ == "__main__":

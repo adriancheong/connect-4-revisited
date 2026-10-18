@@ -184,4 +184,4 @@ print("guesses:", [round(float(predict(weights, bias, x)), 3) for x in INPUTS])
 
 ---
 
-**Previous:** [Step 1: One neuron, by hand](01-one-neuron-by-hand.md) · **Next:** Step 3: Hidden layers and backpropagation (coming)
+**Previous:** [Step 1: One neuron, by hand](01-one-neuron-by-hand.md) · **Next:** [Step 3a: A network with a hidden layer, by hand](03a-hidden-layer-by-hand.md)

@@ -66,7 +66,7 @@ Step-by-step notes live in [`docs/`](docs/README.md). Start with [Start here: th
 | Stage | Build | Status |
 |---|---|---|
 | 1 | Playable game, human or bot on either side | Done |
-| 2 | A neural network written by hand in NumPy | In progress (steps 1-2 of 4 done) |
+| 2 | A neural network written by hand in NumPy | In progress (steps 1-3 of 4 done) |
 | 3 | The same network in PyTorch, then a convolutional network | |
 | 4 | A bot that teaches itself by self-play | |
 | 5 | Optional: AlphaZero-style bot | |

@@ -129,7 +129,11 @@ You don't need to memorise these. Come back here whenever a word is unclear.
 | **Training round** (textbook: **training step**, sometimes **epoch**) | One cycle of: guess, measure the error, turn the dials. |
 | **Training** | Doing training rounds over and over until the error is small. |
 | **Forward pass** | Making a guess: numbers flow forward, from inputs to output. |
-| **Backpropagation** (or **backward pass**) | Working out every dial's slope by passing the blame backwards, from the output to the inputs. Page 3. |
+| **Backpropagation** (or **backward pass**) | Working out every dial's slope by passing the blame backwards, from the output to the inputs. Page 3a. |
+| **Blame** (textbook: **error signal** or **delta**) | For one neuron: how much the error would change if that neuron's total went up a little. Negative means its total should go up. Page 3a. |
+| **Gradient check** | Checking backpropagation's slopes against the slow nudge test, to catch bugs in the code. Page 3a. |
+| **Matrix** | A grid of numbers. A layer keeps its weights in one, with a column per neuron, so the same code works for any number of neurons. |
+| **Local minimum** | A hollow in the error landscape that isn't the lowest point. Every small step from there goes uphill, so training gets stuck. Page 3b. |
 | **Chain rule** | The rule backpropagation uses: when one thing turns another, which turns another, multiply the "gear ratios" to see how the first affects the last. Page 1, section 8. |
 | **Generalising** | Getting the right answer for questions the network never practised on. The thing your FYP table couldn't do. |
 

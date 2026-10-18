@@ -11,7 +11,8 @@ New to neural networks? Start with page 0. It has a picture of a network, everyd
 | 0 | [Start here: the big picture](stage-2/00-start-here.md) | What a neural network is and looks like, how it learns, the words you'll meet, how to read the charts |
 | 1 | [One neuron, by hand](stage-2/01-one-neuron-by-hand.md) | One neuron makes a guess, measures its error, and turns its dials once, with numbers you can check |
 | 2 | [Training a neuron on many examples](stage-2/02-training-a-neuron.md) | Learning a rule from a deck of flashcards, the step size, and why one neuron can't learn XOR |
-| 3 | Hidden layers and backpropagation (coming) | Wiring neurons into layers, and finding which way to turn every dial inside the network |
+| 3a | [A network with a hidden layer, by hand](stage-2/03a-hidden-layer-by-hand.md) | Wiring neurons into layers, and backpropagation: passing the blame backwards to find which way to turn every dial |
+| 3b | [Training a network on XOR](stage-2/03b-training-a-network.md) | What the hidden neurons learn, different circuits from different starts, getting stuck in a local minimum |
 | 4 | Spotting winning moves in Connect 4 (coming) | Turning a board into numbers, training on generated positions, testing on positions the network has never seen |
 
 To regenerate the charts (after the setup in the main README): `python scripts/make_stage2_charts.py`.
