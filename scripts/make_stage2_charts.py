@@ -440,7 +440,7 @@ def diagram_network_forward() -> None:
     guess = fwd.guesses[0, 0]
     d = nw.named_dials(net)
 
-    fig, ax = blank_canvas(8.2, 4.2, (-1.4, 12.6), (-3.4, 3.3))
+    fig, ax = blank_canvas(8.2, 4.5, (-1.4, 12.6), (-3.4, 3.9))
     _network_skeleton(ax)
     node(ax, *_POS["x1"], radius=0.6, fill="#f0efec", edge=AXIS, text="x1\n1.0", size=9)
     node(ax, *_POS["x2"], radius=0.6, fill="#f0efec", edge=AXIS, text="x2\n0.0", size=9)
@@ -460,6 +460,8 @@ def diagram_network_forward() -> None:
 
     ax.text(0, 2.85, "inputs", ha="center", fontsize=10, weight="bold")
     ax.text(4.2, 2.85, "hidden layer", ha="center", fontsize=10, weight="bold")
+    ax.text(-1.3, 3.6, "Number in each circle: what that neuron outputs for this card",
+            fontsize=9, color=INK, style="italic")  # fmt: skip
     ax.text(8.4, 2.85, "output", ha="center", fontsize=10, weight="bold")
     ax.text(9.4, 0.45, "answer: 1", fontsize=9, color=INK_2)
     ax.text(9.4, -0.05, f"miss: 1 − {guess:.3f} = {1 - guess:.3f}", fontsize=9, color=INK_2)
@@ -484,7 +486,7 @@ def diagram_network_backward() -> None:
     blame_b = passed_b * out_b * (1 - out_b)
     up, down = SERIES[0], SERIES[1]
 
-    fig, ax = blank_canvas(7.6, 4.4, (-1.4, 11.6), (-3.6, 3.3))
+    fig, ax = blank_canvas(7.6, 4.7, (-1.4, 11.6), (-3.6, 3.9))
     _network_skeleton(ax)
     node(ax, *_POS["x1"], radius=0.6, fill="#f0efec", edge=AXIS, text="x1\n1.0", size=9)
     node(ax, *_POS["x2"], radius=0.6, fill="#f0efec", edge=AXIS, text="x2\n0.0", size=9)
@@ -501,6 +503,8 @@ def diagram_network_backward() -> None:
     ax.text(4.2, -2.35, f"× B's steepness {out_b * (1 - out_b):.3f}", ha="center", va="top",
             fontsize=8.5, color=INK_2)  # fmt: skip
     ax.text(4.2, 2.85, "blame for each neuron", ha="center", fontsize=10, weight="bold")
+    ax.text(-1.3, 3.6, "Number in each circle: that neuron's blame (not its output)",
+            fontsize=9, color=INK, style="italic")  # fmt: skip
     ax.text(10.0, 0.55, "guess too low:", fontsize=8.5, color=up)
     ax.text(10.0, 0.05, "push it up", fontsize=8.5, color=up)
     ax.text(2.1, 1.75, "A's dials: turn up", ha="center", fontsize=8.5, color=up, weight="bold")

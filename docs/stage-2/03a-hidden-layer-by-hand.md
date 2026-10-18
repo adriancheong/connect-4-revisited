@@ -130,7 +130,7 @@ B's blame = output blame × wOB  × B's steepness
 
 ![The same network with blame flowing backwards: the output's blame is passed to A through wOA and to B through wOB](images/03-network-backward.png)
 
-**How to read this picture.** Blame flows right to left, along the same wires the numbers flowed forward on. The number inside each neuron is its blame. Blue means "push this neuron's total up", orange means "push it down".
+**How to read this picture.** Blame flows right to left, along the same wires the numbers flowed forward on. Same network and same card as the first picture, but the number inside each neuron is now its **blame**, not its output. A's output is still 0.599; its blame is −0.0256. Blue means "push this neuron's total up", orange means "push it down".
 
 **Why A and B get opposite blame.** The guess was too low.
 - The output neuron listens to A **positively** (`wOA = +0.5`): when A says more, the guess goes up. So A should say **more**.
