@@ -113,7 +113,9 @@ You don't need to memorise these. Come back here whenever a word is unclear.
 | **Input** | A number fed into the network or a neuron, e.g. one board cell. |
 | **Weight** | A dial on a connection: how much to listen to that input, and whether it counts for or against. |
 | **Bias** | A neuron's starting lean, before it looks at any input. Also a dial. |
+| **Total** (textbook: **weighted sum**, often written `z`) | A neuron's inputs × weights, added up, plus its bias. The number *before* the squash. |
 | **Squash function** (textbook: **sigmoid**, a kind of **activation function**) | Turns any number into a confidence between 0 and 1. |
+| **A neuron's output** (textbook: **activation**) | The squashed total: what the neuron passes on to the next layer. For the last neuron, this is the guess. |
 | **Output / guess / prediction** | The number that comes out when you put an input in. It's the network's answer, which may be right or wrong. |
 | **Layer** | A column of neurons. Inputs on the left, output on the right, hidden layers in between. |
 | **Hidden layer** | A layer in the middle. "Hidden" just means you don't see its numbers directly. |

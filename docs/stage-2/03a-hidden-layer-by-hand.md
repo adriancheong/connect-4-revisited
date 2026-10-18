@@ -74,6 +74,16 @@ error = (guess − answer)²
 ```
 (The program uses the unrounded guess, 0.5657, which is why this comes out as 0.189 and not the 0.188 you'd get from 0.434² on a calculator.)
 
+**Total vs output.** Every neuron has two numbers, and the rest of this page uses both:
+
+| Neuron | Total (before the squash) | Output (after the squash) |
+|---|---|---|
+| Hidden A | 0.4 | 0.599 |
+| Hidden B | −0.2 | 0.450 |
+| Output neuron | 0.264 | 0.566, the guess |
+
+"Output" can mean two things: the **output neuron** (the last one, which makes the guess), or **a neuron's output** (its number after the squash). So the output neuron's *output* is the guess, 0.566, and its *total* is 0.264.
+
 The guess is too low. Now: which of the 9 dials should turn, and which way?
 
 ## 4. Who's to blame? (the backward pass)
