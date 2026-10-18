@@ -65,10 +65,14 @@ total = wOA × A + wOB × B + bO
 guess = squash(0.264) = 0.566
 ```
 
-**Error:**
+**Error:** the miss, squared, just like page 1:
 ```
-error = (0.566 − 1)² = 0.189
+error = (guess − answer)²
+      = (0.566 − 1)²
+      = 0.434²
+      = 0.189
 ```
+(The program uses the unrounded guess, 0.5657, which is why this comes out as 0.189 and not the 0.188 you'd get from 0.434² on a calculator.)
 
 The guess is too low. Now: which of the 9 dials should turn, and which way?
 
