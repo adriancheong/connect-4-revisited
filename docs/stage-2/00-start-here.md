@@ -110,7 +110,8 @@ You don't need to memorise these. Come back here whenever a word is unclear.
 |---|---|
 | **Neural network** (or ANN, artificial neural network) | A formula made of many small, simple parts (neurons) connected together. Its behaviour is set by adjustable numbers (weights). |
 | **Neuron** (also "node" or "unit") | One small part: takes numbers in, multiplies each by a weight, adds them up, squashes the total, gives one number out. |
-| **Input** | A number fed into the network or a neuron, e.g. one board cell. |
+| **Input** | A number fed into the network or a neuron, e.g. one of the Connect 4 network's 84 switches. |
+| **Switch** (textbook: **binary input**) | An input that can only be 0 (off) or 1 (on). The Connect 4 network's 84 inputs are all switches: for each of the 42 cells, "is my piece here?" and "is my opponent's piece here?". An empty cell has both off. Each 6×7 grid of them is often called a **plane**. Step 4a. |
 | **Weight** | A dial on a connection: how much to listen to that input, and whether it counts for or against. |
 | **Bias** | A neuron's starting lean, before it looks at any input. Also a dial. |
 | **Total** (textbook: **weighted sum**, often written `z`) | A neuron's inputs × weights, added up, plus its bias. The number *before* the squash. |
