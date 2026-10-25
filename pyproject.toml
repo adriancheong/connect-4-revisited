@@ -13,6 +13,7 @@ dependencies = ["numpy>=1.26"]
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.5"]
 plots = ["matplotlib>=3.8"]
+torch = ["torch>=2.14"]  # stage 3 onwards
 
 [project.scripts]
 connect4 = "connect4.cli:main"
@@ -21,6 +22,17 @@ connect4 = "connect4.cli:main"
 # Supply-chain safety: when choosing package versions, ignore anything published
 # in the last 7 days. Most malicious releases are caught and removed within days.
 exclude-newer = "7 days"
+
+# PyTorch's builds that run on NVIDIA graphics cards (CUDA 13.0) come from PyTorch's own
+# download site, not PyPI. Only torch itself comes from there; everything else is from PyPI.
+# macOS has no CUDA, so it gets the ordinary PyPI build.
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu130", marker = "sys_platform == 'win32' or sys_platform == 'linux'" }]
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
