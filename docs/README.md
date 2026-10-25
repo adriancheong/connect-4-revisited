@@ -27,8 +27,12 @@ The stage 2 networks rebuilt with PyTorch, the library most of the industry uses
 | Step | Page | What you learn |
 |---|---|---|
 | 1 | [From NumPy to PyTorch](stage-3/01-numpy-to-pytorch.md) | Tensors, building a network out of parts, automatic slopes that match your hand-written backpropagation exactly, and when the graphics card is faster than the processor |
-| 2 | The Connect 4 network in PyTorch (coming) | The stage 2 network again, then cross-entropy, ReLU and Adam, one at a time |
-| 3 | A network built for grids (coming) | A convolutional network (CNN) that slides small pattern detectors across the board |
+| 2a | [The Connect 4 network in PyTorch](stage-3/02a-connect-4-in-pytorch.md) | Stage 2's network and recipe rebuilt in PyTorch, matching stage 2's results; recipes, saving safely, playing against it |
+| 2b | [Three standard upgrades](stage-3/02b-three-upgrades.md) | Cross-entropy, ReLU and Adam, added one at a time and measured |
+| 3a | [How a convolution works, by hand](stage-3/03a-convolution-by-hand.md) | One small detector slid across the board, worked by hand and checked against PyTorch |
+| 3b | [Training a CNN on Connect 4](stage-3/03b-training-a-cnn.md) | A convolutional network: results, what its detectors learned, the graphics card, and what stage 4 has to add |
+
+To regenerate the charts and numbers: `python scripts/make_stage3_charts.py` (about 20 minutes, because it trains several networks).
 
 ## Later stages
 

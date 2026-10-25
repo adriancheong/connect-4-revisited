@@ -336,4 +336,4 @@ Before running each one, guess:
 
 ---
 
-**Previous:** [Step 4a: Connect 4 boards into numbers](04a-boards-into-numbers.md) · **Next:** Stage 3: PyTorch (coming)
+**Previous:** [Step 4a: Connect 4 boards into numbers](04a-boards-into-numbers.md) · **Next:** [Stage 3, step 1: From NumPy to PyTorch](../stage-3/01-numpy-to-pytorch.md)

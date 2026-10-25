@@ -369,6 +369,26 @@ def train_and_score(data, batch, rate, epochs, checks, practice=False) -> None:
     )  # fmt: skip
 
 
+def win_or_block_moments(player) -> tuple[int, int]:
+    """On the positions of 300 random games: (moments handled right, moments).
+
+    A moment is a position where the player to move can win, or must block. Handled
+    right means it plays a winning column, or if there's none, a blocking one.
+    """
+    right_moves = total = 0
+    p1, p2 = RandomPlayer(7), RandomPlayer(8)
+    for _ in range(300):
+        for board in play_game(p1, p2).boards:
+            wins = board.winning_moves()
+            threats = board.winning_moves(3 - board.current_player) if board.moves else []
+            if board.is_terminal() or not (wins or threats):
+                continue
+            move = player.choose_move(board)
+            total += 1
+            right_moves += move in (wins or threats)
+    return right_moves, total
+
+
 def tally(player1, player2, games=1000) -> str:
     wins = {1: 0, 2: 0, None: 0}
     for _ in range(games):
@@ -418,17 +438,7 @@ def main() -> None:
     say(f"  random vs neural:       {tally(RandomPlayer(3), neural)}")
     say(f"  neural vs heuristic:    {tally(neural, HeuristicPlayer(4))}")
     say(f"  heuristic vs neural:    {tally(HeuristicPlayer(5), neural)}")
-    right_moves = total = 0
-    p1, p2 = RandomPlayer(7), RandomPlayer(8)
-    for _ in range(300):
-        for board in play_game(p1, p2).boards:
-            wins = board.winning_moves()
-            threats = board.winning_moves(3 - board.current_player) if board.moves else []
-            if board.is_terminal() or not (wins or threats):
-                continue
-            move = neural.choose_move(board)
-            total += 1
-            right_moves += move in (wins or threats)
+    right_moves, total = win_or_block_moments(neural)
     say(f"  win-or-block moments handled correctly: {right_moves / total:.1%} of {total}")
 
     say("\nHidden layer sizes (step size 10, 30 epochs):")

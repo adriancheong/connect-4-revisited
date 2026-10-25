@@ -5,6 +5,7 @@ Examples:
     python -m connect4 --p2 heuristic                    # you against a bot
     python -m connect4 --p1 random --p2 heuristic --games 1000
     python -m connect4 --p2 neural                       # against the trained network (stage 2)
+    python -m connect4 --p2 neural --model models/winning-moves-cnn.pt   # a stage 3 network
 """
 
 from __future__ import annotations
@@ -56,14 +57,20 @@ def make_player(kind: str, seed: int | None = None, model: Path = DEFAULT_MODEL)
 
 def _load_neural_player(model: Path, seed: int | None) -> Player:
     # Imported here so the plain game never needs the neural network code.
+    pytorch = Path(model).suffix == ".pt"  # stage 3 networks; stage 2's are .npz
+    if not Path(model).exists():
+        trainer = f"connect4.{'torch_nn' if pytorch else 'numpy_nn'}.winning_moves"
+        raise SystemExit(
+            f"No trained network at {model}. Train one first (it takes a few minutes) with:\n"
+            f"    python -m {trainer}"
+        )
+    if pytorch:
+        from connect4.torch_nn.winning_moves import load_player
+
+        return load_player(Path(model), seed)
     from connect4.numpy_nn import network
     from connect4.numpy_nn.winning_moves import NeuralPlayer
 
-    if not Path(model).exists():
-        raise SystemExit(
-            f"No trained network at {model}. Train one first (it takes a few minutes) with:\n"
-            "    python -m connect4.numpy_nn.winning_moves"
-        )
     return NeuralPlayer(network.load(model), seed)
 
 

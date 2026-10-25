@@ -158,4 +158,4 @@ The graphics card doesn't do anything the processor can't; it does the same arit
 
 ---
 
-**Previous:** [Stage 2, step 4b: Training on Connect 4](../stage-2/04b-training-on-connect-4.md) · **Next:** Step 2: the Connect 4 network in PyTorch (coming)
+**Previous:** [Stage 2, step 4b: Training on Connect 4](../stage-2/04b-training-on-connect-4.md) · **Next:** [Step 2a: The Connect 4 network in PyTorch](02a-connect-4-in-pytorch.md)

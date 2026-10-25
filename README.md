@@ -33,11 +33,12 @@ Player types:
 - `human`: you, at the keyboard.
 - `random`: picks any legal column.
 - `heuristic`: wins if it can, blocks your win if it must, otherwise random.
-- `neural`: the same strategy, but it spots wins and threats with a neural network (stage 2). Train one first, which takes a few minutes:
+- `neural`: the same strategy, but it spots wins and threats with a neural network. Train one first, which takes a few minutes:
   ```bash
-  python -m connect4.numpy_nn.winning_moves    # saves models/winning-moves.npz
+  python -m connect4.numpy_nn.winning_moves    # stage 2: saves models/winning-moves.npz
+  python -m connect4.torch_nn.winning_moves    # stage 3's CNN: saves models/winning-moves-cnn.pt
   ```
-  Use `--model PATH` to play a network saved somewhere else.
+  `--p2 neural` plays the stage 2 network. Use `--model PATH` to play another, e.g. `--model models/winning-moves-cnn.pt`.
 
 Other options: `--seed N` makes bot games repeatable, `--no-color` turns off coloured pieces.
 
@@ -68,6 +69,7 @@ ruff check .
 | `src/connect4/numpy_nn/` | Stage 2: neural networks written from scratch in NumPy |
 | `src/connect4/torch_nn/` | Stage 3: the same networks in PyTorch, then improved |
 | `scripts/make_stage2_charts.py`, `make_stage2_step4_charts.py` | Draw the charts in `docs/stage-2/` and print the numbers the notes quote |
+| `scripts/make_stage3_charts.py` | The same for `docs/stage-3/` |
 | `models/` | Trained networks. Not committed: make your own with the command above |
 
 ## Learning path
@@ -78,6 +80,6 @@ Step-by-step notes live in [`docs/`](docs/README.md). Start with [Start here: th
 |---|---|---|
 | 1 | Playable game, human or bot on either side | Done |
 | 2 | A neural network written by hand in NumPy | Done |
-| 3 | The same network in PyTorch, then a convolutional network | In progress (step 1 of 3 done) |
+| 3 | The same network in PyTorch, then a convolutional network | Done |
 | 4 | A bot that teaches itself by self-play | |
 | 5 | Optional: AlphaZero-style bot | |
