@@ -124,16 +124,51 @@ The lesson: **how you describe the inputs matters.** The same network, with the 
 
 Nobody told the network about lines of four. So what are its 128 hidden neurons looking for? Their weights tell us.
 
-![Six hidden neurons, each drawn as two 6-by-7 grids of weights, one for "my pieces" and one for "opponent's pieces". Five show a blue stripe of my pieces in one column and a red stripe of opponent's pieces in the same column. One shows blue cells on a rising diagonal](images/04-hidden-neurons.png)
+**First, what one hidden neuron is.** It's the same kind of neuron as in step 1, just with more inputs. It has **84 weights**, one for each input switch, plus a bias. Given a board, it multiplies each switch (1 if that piece is there, 0 if not) by its weight, adds them all up with the bias, and squashes the total into an output between 0 and 1. Near 1 means its pattern is on the board: the neuron *fires*. Near 0 means it isn't.
+
+![Six hidden neurons, each drawn as two 6-by-7 grids of weights, one for "my pieces" and one for "opponent's pieces", with rows numbered 1 to 6 from the bottom. Five show a blue stripe of my pieces in one column and a red stripe of opponent's pieces in the same column. One shows blue cells on a rising diagonal](images/04-hidden-neurons.png)
 
 **How to read this picture.**
-- Each pair of grids is **one hidden neuron**. The left grid shows its weights from the 42 "my piece here?" switches, laid out like the board. The right grid shows its weights from the 42 "opponent's piece here?" switches.
-- **Blue** means a piece in that cell makes this neuron fire more (it counts *for*). **Red** means it counts *against*. Pale means the neuron doesn't care about that cell.
-- These are the six neurons with the strongest vote for one column. "Votes for column 6" means the output for column 6 has a big positive weight from this neuron: when this neuron fires, the network says "column 6 wins".
+- **There's no board here.** The picture shows each neuron's 84 **weights**, read straight out of the trained network and drawn in the shape of the board, so each weight sits on the cell its switch belongs to.
+- Each pair of grids is **one hidden neuron**. The left grid holds its 42 weights for "is **my** piece here?". The right grid holds its 42 weights for "is my **opponent's** piece here?".
+- **Blue** is a positive weight: a piece in that cell pushes the neuron towards firing. **Red** is negative: a piece there pushes it away from firing. Pale is close to 0: the neuron doesn't care about that cell. Empty cells add nothing, because both their switches are 0.
+- **The same cell appears in both grids,** often blue in one and red in the other. That isn't a contradiction. A cell holds at most one piece, so on any board only one of its two weights is used: the left one if my piece is there, the right one if my opponent's is. Blue on the left and red on the right means "I want *my* piece here, and definitely not my opponent's". Blue in *both* means "I want this cell filled, by anyone" (neuron 127 below).
+- Rows are numbered from the **bottom**, like the board: row 1 is the bottom row.
+- **"Votes for column 6"** says which output this neuron feeds. Every hidden neuron's output goes to all 7 output neurons, each through its own weight. Neuron 108's weight into the "column 6 wins" output is **+15.2**; into the other six it's between −0.3 and +0.6. So when neuron 108 fires, it pushes the network's answer for column 6 strongly towards "yes" and hardly touches the rest. These six are the neurons with the biggest vote for any single column.
 
-What they found:
+**Neuron 108, close up.** Its weights outside column 6 are all small (between −1.5 and +0.6), so it mostly ignores the rest of the board. Here are its weights in column 6, and its bias is −3.0:
 
-- **Neuron 108**, top left: a blue stripe of *my* pieces up column 6, and a red stripe of the *opponent's* pieces in column 6. In words: "lots of my pieces in column 6 and none of my opponent's". That's a stack of three, so putting a fourth on top wins. It votes for column 6.
+| Row (from the bottom) | My piece there | Opponent's piece there |
+|---|---|---|
+| 6 | −0.4 | −3.6 |
+| 5 | **+4.7** | −2.3 |
+| 4 | **+2.2** | −5.0 |
+| 3 | **+5.4** | −4.7 |
+| 2 | **+1.0** | −3.2 |
+| 1 | −0.1 | −1.4 |
+
+The two darkest blue cells in the picture are rows 3 and 5. Here it is on two boards, adding up column 6 only (the rest of the board adds a little either way):
+
+- **Column 6 holds, from the bottom: opponent's, mine, mine, mine.** Total = −1.4 + 1.0 + 5.4 + 2.2 − 3.0 = **+4.2**, which squashes to about 0.98, so it fires. Rightly: the next piece lands in row 5 and makes four.
+- **Column 6 holds mine, mine, mine, then an opponent's piece on top.** Total = −0.1 + 1.0 + 5.4 − 5.0 − 3.0 = **−1.7**, which squashes to about 0.15, so it stays quiet. Rightly: the stack is blocked.
+
+**Which row is it aiming at?** None. A move is a column, and gravity decides the row. A stack of three can sit at different heights depending on what's underneath it: rows 1–3, 2–4 or 3–5. One neuron covers all of them with one sum, which is why rows 2 to 5 are all blue, by different amounts. In words, neuron 108 asks: **"Are the top pieces in column 6 three of mine, with no opponent's piece in the way?"** If so, dropping a piece in column 6 makes four, so it votes for column 6.
+
+Checked on the test positions:
+
+| Column 6, from the bottom | Positions | Neuron 108 fires | Column 6 really wins |
+|---|---|---|---|
+| mine, mine, mine | 410 | 73% | 100% |
+| opponent's, mine, mine, mine | 194 | 92% | 100% |
+| opponent's, opponent's, mine, mine, mine | 36 | 83% | 100% |
+| mine, mine, mine, opponent's (blocked) | 232 | 0% | 0% |
+| opponent's, mine, mine (only two of mine on top) | 610 | 19% | 3% (along a row or diagonal) |
+| any column 6 with an opponent's piece on top | 13,998 | 0.0% | |
+
+It isn't perfect on its own. It misses about a quarter of the plain "mine, mine, mine" stacks, and sometimes fires when only two of mine are on top. Other neurons fill the gaps (neuron 93 also votes for column 6). The network's final answer for column 6 says "win" for 94–100% of the real stacks in this table, and for 2% or fewer of the others.
+
+**The other five:**
+
 - **Neurons 32, 34, 59 and 93**: the same idea for columns 4, 1, 3 and 6.
 - **Neuron 127**, bottom left, is cleverer. Blue cells for my pieces climb a diagonal: column 1 row 1, column 2 row 2, column 3 row 3. And row 3 of column 4 is blue in *both* grids: the neuron wants that cell filled, and doesn't care whose piece is there. Then the next piece dropped in column 4 lands in row 4, and completes the diagonal. **It worked out gravity**, from examples alone. It votes for column 4.
 

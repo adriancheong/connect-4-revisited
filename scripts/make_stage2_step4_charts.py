@@ -245,17 +245,47 @@ def chart_hidden_neurons(net) -> list[tuple[int, int, float]]:
                 cmap=DIVERGING, vmin=-limit, vmax=limit,
             )  # fmt: skip
             ax.set_xticks(range(COLS), [str(c + 1) for c in range(COLS)], fontsize=7)
-            ax.set_yticks([])
+            ax.set_yticks(range(ROWS), [str(r + 1) for r in range(ROWS)], fontsize=7)
             ax.grid(False)
             ax.set_title(f"Neuron {j}: {label}", fontsize=9)
         axes[row, 2 * pair].set_ylabel(f"votes for column {best_col[j] + 1}", fontsize=8.5)
         picked.append((int(j), int(best_col[j]) + 1, float(strength[j])))
     bar = fig.colorbar(image, ax=axes, shrink=0.5, location="bottom", aspect=40)
     bar.set_ticks([])
-    bar.set_label("red = counts against this neuron firing  ·  blue = counts for it", color=INK_2)
+    bar.set_label(
+        "weights, not a board  ·  blue = a piece here pushes the neuron to fire  ·  red = pushes"
+        " it not to  ·  rows counted from the bottom",
+        color=INK_2,
+    )  # fmt: skip
     bar.outline.set_visible(False)
     save(fig, "04-hidden-neurons.png")
     return picked
+
+
+def describe_neuron(net, data, j: int = 108, col: int = 5) -> None:
+    """Print the numbers section 8 quotes for one neuron: its weights in one column, its bias
+    and votes, and how often it fires for different column contents on the test positions."""
+    w = net.hidden_weights[:, j].reshape(2, ROWS, COLS)
+    say(f"neuron {j}, column {col + 1} weights by row, bottom first: "
+        f"mine {np.round(w[0, :, col], 1)}, opponent's {np.round(w[1, :, col], 1)}")  # fmt: skip
+    rest = np.delete(w, col, axis=2)
+    say(f"  other weights {rest.min():.1f} to {rest.max():.1f}, bias {net.hidden_biases[j]:.2f}, "
+        f"votes for columns 1-7 {np.round(net.output_weights[j], 1)}")  # fmt: skip
+    fires = nw.forward(net, data.test_inputs).hidden[:, j] > 0.5
+    says_win = nw.predict(net, data.test_inputs)[:, col] > 0.5
+    stacks: dict[str, list[int]] = {}
+    for i, board in enumerate(data.test_boards):
+        me = board.current_player
+        stack = "".join("M" if v == me else "O" for v in board.grid[:, col] if v)  # bottom first
+        stacks.setdefault(stack, []).append(i)
+    for stack in ("MMM", "OMMM", "OOMMM", "MMMO", "OMM"):
+        idx = stacks[stack]
+        say(f"  column {col + 1} = {stack:5} ({len(idx):>3} positions)"
+            f": fires {fires[idx].mean():.0%}, really wins {data.test_answers[idx, col].mean():.0%}"
+            f", network says win {says_win[idx].mean():.0%}")  # fmt: skip
+    blocked = [i for stack, idx in stacks.items() if stack.endswith("O") for i in idx]
+    say(f"  opponent's piece on top ({len(blocked):,} positions)"
+        f": fires {fires[blocked].mean():.1%}")  # fmt: skip
 
 
 DIRECTIONS = {"vertical": [(1, 0)], "horizontal": [(0, 1)], "diagonal": [(1, 1), (1, -1)]}
@@ -349,6 +379,7 @@ def main() -> None:
     for title, i in chart_examples(net, data):
         say(f"example '{title}': test position {i}, moves {list(data.test_boards[i].moves)}")
     say(f"hidden neurons drawn (neuron, column, vote): {chart_hidden_neurons(net)}")
+    describe_neuron(net, data)
     by_direction = wins_spotted_by_direction(net, data)
     say(f"winning moves spotted, by direction (spotted, total): {by_direction}")
     chart_bars(
