@@ -15,6 +15,8 @@ source .venv/Scripts/activate    # Git Bash; in PowerShell: .venv\Scripts\activa
 
 Run `source .venv/Scripts/activate` (or `.venv\Scripts\activate` in PowerShell) again in each new terminal before using the commands below.
 
+The first sync downloads PyTorch (stage 3 onwards), a 2–3 GB one-time download because it includes NVIDIA's graphics-card libraries. To skip it, use `uv sync --locked --extra dev --extra plots` instead.
+
 ## Play
 
 ```bash
@@ -48,7 +50,8 @@ ruff check .
 
 ## Dependencies and supply-chain safety
 
-- **What the project uses** is listed in `pyproject.toml`: numpy to run, plus pytest and ruff (the `dev` extra) and matplotlib (the `plots` extra) for development.
+- **What the project uses** is listed in `pyproject.toml`: numpy to run, plus pytest and ruff (the `dev` extra), matplotlib (the `plots` extra) and PyTorch (the `torch` extra, stage 3 onwards).
+- **PyTorch comes from PyTorch's own download site** (`download.pytorch.org/whl/cu130`), because the builds that run on NVIDIA graphics cards aren't on PyPI. Only `torch` itself comes from there; everything else comes from PyPI. The 7-day cooldown below applies to it too.
 - **`uv.lock` pins the exact version of every package**, including the ones those packages pull in, each with a SHA-256 checksum. `uv sync --locked` installs exactly those versions, refuses any download whose checksum doesn't match, and stops if the lock file is out of date with `pyproject.toml`.
 - **7-day cooldown:** `exclude-newer = "7 days"` under `[tool.uv]` in `pyproject.toml` makes uv ignore any release published in the last 7 days when it picks versions. Most malicious releases are caught and removed within days.
 - **To update on purpose:** run `uv lock --upgrade`, review the version changes in `uv.lock`, run the tests, then commit.
@@ -63,6 +66,7 @@ ruff check .
 | `src/connect4/game.py` | Runs a game and records every position |
 | `src/connect4/cli.py` | Terminal display and command-line options |
 | `src/connect4/numpy_nn/` | Stage 2: neural networks written from scratch in NumPy |
+| `src/connect4/torch_nn/` | Stage 3: the same networks in PyTorch, then improved |
 | `scripts/make_stage2_charts.py`, `make_stage2_step4_charts.py` | Draw the charts in `docs/stage-2/` and print the numbers the notes quote |
 | `models/` | Trained networks. Not committed: make your own with the command above |
 
@@ -74,6 +78,6 @@ Step-by-step notes live in [`docs/`](docs/README.md). Start with [Start here: th
 |---|---|---|
 | 1 | Playable game, human or bot on either side | Done |
 | 2 | A neural network written by hand in NumPy | Done |
-| 3 | The same network in PyTorch, then a convolutional network | |
+| 3 | The same network in PyTorch, then a convolutional network | In progress (step 1 of 3 done) |
 | 4 | A bot that teaches itself by self-play | |
 | 5 | Optional: AlphaZero-style bot | |

@@ -20,11 +20,20 @@ To regenerate the charts (after the setup in the main README):
 - Steps 0–3: `python scripts/make_stage2_charts.py`
 - Step 4: `python scripts/make_stage2_step4_charts.py` (about 15 minutes, because it trains several networks)
 
+## Stage 3: PyTorch, then a network built for grids
+
+The stage 2 networks rebuilt with PyTorch, the library most of the industry uses, then improved with the standard upgrades and a convolutional network. Run `python -m pytest` after setup to check PyTorch matches the stage 2 code.
+
+| Step | Page | What you learn |
+|---|---|---|
+| 1 | [From NumPy to PyTorch](stage-3/01-numpy-to-pytorch.md) | Tensors, building a network out of parts, automatic slopes that match your hand-written backpropagation exactly, and when the graphics card is faster than the processor |
+| 2 | The Connect 4 network in PyTorch (coming) | The stage 2 network again, then cross-entropy, ReLU and Adam, one at a time |
+| 3 | A network built for grids (coming) | A convolutional network (CNN) that slides small pattern detectors across the board |
+
 ## Later stages
 
 | Stage | Topic |
 |---|---|
-| 3 | The same network in PyTorch, then a convolutional network (CNN) |
 | 4 | A bot that teaches itself by self-play: reinforcement learning, ε-greedy exploration, discounting |
 | 5 | Optional: AlphaZero-style policy + value network with tree search |
 
