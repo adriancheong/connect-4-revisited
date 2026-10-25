@@ -134,6 +134,7 @@ You don't need to memorise these. Come back here whenever a word is unclear.
 | **Training round** (textbook: **training step**) | One cycle of: guess, measure the error, turn the dials. |
 | **Mini-batch** | A small handful of cards (e.g. 64) used for one training round, when the whole deck is too big to use every time. Step 4b. |
 | **Epoch** | One pass through the whole deck of practice cards. With mini-batches, one epoch is many training rounds. Step 4b. |
+| **Hyperparameter** | A setting you choose before training, as opposed to the dials training learns: the number of hidden neurons, the step size, the batch size, the number of epochs. Worth testing rather than taking on trust. Step 4b, section 12. |
 | **Training** | Doing training rounds over and over until the error is small. |
 | **Forward pass** | Making a guess: numbers flow forward, from inputs to output. |
 | **Backpropagation** (or **backward pass**) | Working out every dial's slope by passing the blame backwards, from the output to the inputs. Page 3a. |

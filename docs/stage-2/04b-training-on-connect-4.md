@@ -46,7 +46,7 @@ It takes a few minutes. It makes the positions, trains for 50 epochs, prints the
 The settings:
 - **128 hidden neurons** (section 5 shows why).
 - **Step size 10**, chosen by trying, like in step 2. At 20 the network got stuck: after 10 epochs it found only 16% of wins, against 77% with step size 10. It's bigger than step 3's 2 partly because the error is averaged over 7 answers per card, which makes each slope smaller.
-- **Mini-batches of 64**, **50 epochs**.
+- **Mini-batches of 64**, **50 epochs** (section 12 tries other choices).
 
 ## 3. Watching it learn
 
@@ -252,7 +252,40 @@ It beats the random player easily. But it **loses to the heuristic bot**, even t
 
 **The lesson:** 93% sounds great on a test, but small error rates add up when decisions are chained together. Stage 3 aims for much closer to 100%.
 
-## 12. What stage 3 will improve
+## 12. Could we just train longer, or differently?
+
+Section 2 picked 50 epochs and batches of 64 without trying anything else. Both are settings you choose before training starts, like the number of hidden neurons and the step size (textbook: *hyperparameters*). What happens if you change them?
+
+**Training longer.** The same network, carrying on past 50 epochs:
+
+| Epochs | Practice: finds the win | Test: finds the win |
+|---|---|---|
+| 50 (the network above) | 94.8% | 92.9% |
+| 100 | 96.5% | 95.1% |
+| 200 | 97.3% | 95.9% |
+| 300 | 97.6% | 96.2% |
+| 500 | 97.9% | 96.1% |
+
+The next 50 epochs help, then it levels off at about 96%: ten times the training buys about 3 points. After about 300 epochs the practice score still creeps up while the test score doesn't, which is the start of memorising. More passes over the same cards can't get past the network's own limits: its size, and the slow-learning squash and error measure that stage 3 replaces.
+
+**Bigger or smaller batches.** The same network and step size, 10 epochs each, changing only how many cards go into each batch:
+
+| Cards per batch | Dial turns per epoch | Test: finds the win after 10 epochs |
+|---|---|---|
+| 4 | 75,000 | 93.9% |
+| 16 | 18,750 | 94.8% |
+| **64** (section 2) | 4,688 | 76.9% |
+| 256 | 1,172 | 44.0% |
+| 1,024 | 293 | 9.6% |
+| 300,000 (the whole deck) | 1 | 0.0% |
+
+Smaller batches turn the dials more often, so they learn more per epoch, until each turn is based on so few cards that the dials jitter (4 is already slightly worse than 16). Batch 16 is the best of these: after 50 epochs it finds **97.2%** of wins, against 92.9% for batch 64.
+
+The usual way to make bigger batches work is to take bigger steps to match. Here it fails: batches of 64 or 256 with step size 40, or 256 with step size 160, got stuck at 0%. The big steps push the neurons onto the flat part of the squash, where they stop learning.
+
+**So why keep 64?** It's the usual default, and it suits the tools in stage 3, which make bigger steps safe; on a graphics card, a batch of 64 also takes about as long as a batch of 16. For this hand-built network batch 16 is better, but these notes keep 64 so every number stays comparable. The lesson: settings like these are worth testing rather than taking on trust.
+
+## 13. What stage 3 will improve
 
 Everything in this stage was built by hand, and kept simple on purpose. Stage 3 rebuilds it in PyTorch, a library used across the industry, and adds the standard improvements:
 
@@ -272,6 +305,7 @@ Everything in this stage was built by hand, and kept simple on purpose. Stage 3 
 - **Weak spot:** diagonals (76%), much harder than vertical lines (99.6%).
 - **Blocking for free:** swapping "mine" and "opponent's" lets the same network find the opponent's wins.
 - **In play:** it beats random 92–94% of the time but loses to the heuristic bot, because small error rates add up over a game.
+- **Settings:** ten times the training only reaches about 96%. Batches of 16 would do better than 64 for this network (97.2%), but 64 is the usual default. Settings are worth testing.
 
 That completes stage 2: a neural network built from scratch, trained, tested and playing Connect 4.
 

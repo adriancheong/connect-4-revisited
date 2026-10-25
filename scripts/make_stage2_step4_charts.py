@@ -1,6 +1,6 @@
 """Draw the charts for docs/stage-2/04a and 04b, and print every number the notes quote.
 
-Run from the repository root (takes about 10 minutes, because it trains several networks):
+Run from the repository root (takes about 15 minutes, because it trains several networks):
     python scripts/make_stage2_step4_charts.py
 
 Everything is seeded, so the same computer gives the same numbers every time.
@@ -352,6 +352,23 @@ def chart_bars(name, title, ylabel, groups, series, decimals=0, xlabel=None) -> 
 # ---------------------------------------------------------------------------
 
 
+def train_and_score(data, batch, rate, epochs, checks, practice=False) -> None:
+    """Train a fresh 128-neuron network; print its test (and practice) scores at `checks`."""
+
+    def report(epoch, net):
+        if epoch in checks:
+            say(f"  batch {batch}, step {rate:g}, epoch {epoch}: "
+                f"test {wm.evaluate(net, data.test_inputs, data.test_answers)}")  # fmt: skip
+            if practice:
+                score = wm.evaluate(net, data.practice_inputs, data.practice_answers)
+                say(f"  {'':>{len(str(batch)) + len(f'{rate:g}') + 20}}practice {score}")
+
+    net = nw.new_network(data.practice_inputs.shape[1], 128, COLS, seed=0)
+    nw.train_in_batches(
+        net, data.practice_inputs, data.practice_answers, rate, epochs, batch, 0, report
+    )  # fmt: skip
+
+
 def tally(player1, player2, games=1000) -> str:
     wins = {1: 0, 2: 0, None: 0}
     for _ in range(games):
@@ -453,6 +470,15 @@ def main() -> None:
         _, h42 = wm.train(simple, hidden=64, learning_rate=lr, epochs=30)
         _, h84 = wm.train(data, hidden=64, learning_rate=lr, epochs=30)
         say(f"  step {lr:g}: 42 numbers {h42[-1].test}\n           84 switches {h84[-1].test}")
+
+    say("\nTraining longer (128 hidden neurons, step size 10, batches of 64):")
+    train_and_score(data, 64, 10.0, 500, {50, 100, 200, 300, 500}, practice=True)
+    say("\nBatch sizes (128 hidden neurons, step size 10, 10 epochs; batch 16 also to 50):")
+    for size in (4, 16, 64, 256, 1024, len(data.practice_inputs)):
+        train_and_score(data, size, 10.0, 50 if size == 16 else 10, {10, 50})
+    say("Bigger batches with bigger steps (10 epochs):")
+    for size, rate in ((64, 40.0), (256, 40.0), (256, 160.0)):
+        train_and_score(data, size, rate, 10, {10})
 
     say(f"\nDone in {time.time() - started:.0f}s")
 

@@ -18,7 +18,7 @@ New to neural networks? Start with page 0. It has a picture of a network, everyd
 
 To regenerate the charts (after the setup in the main README):
 - Steps 0–3: `python scripts/make_stage2_charts.py`
-- Step 4: `python scripts/make_stage2_step4_charts.py` (about 10 minutes, because it trains several networks)
+- Step 4: `python scripts/make_stage2_step4_charts.py` (about 15 minutes, because it trains several networks)
 
 ## Later stages
 
