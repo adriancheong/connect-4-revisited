@@ -37,6 +37,7 @@ from connect4.numpy_nn import winning_moves as wm  # noqa: E402
 from connect4.players import HeuristicPlayer, RandomPlayer  # noqa: E402
 
 EXAMPLE_MOVES = [3, 3, 2, 2, 1, 4]  # red to move; column 1 wins
+TWO_QUESTIONS_MOVES = [0, 6, 1, 6, 2, 6]  # red to move; red wins in column 4, yellow in 7
 PIECE = {1: RED_PIECE, 2: YELLOW_PIECE}
 NAME = {1: "red", 2: "yellow"}
 
@@ -130,14 +131,24 @@ def pick_examples(net, data):
     top = guesses.argmax(axis=1)
     top_right = right[np.arange(len(right)), top] == 1
     rules = [
-        ("one winning column, found", (wins == 1) & top_right & (guesses.max(1) > 0.9)),
-        ("two winning columns, both found",
-         (wins == 2) & ((guesses > 0.5) == (right == 1)).all(1)),
-        ("no winning column, correctly no", (wins == 0) & (guesses.max(1) < 0.1)
+        ("The network found it", (wins == 1) & top_right & (guesses.max(1) > 0.9)),
+        ("The network found both", (wins == 2) & ((guesses > 0.5) == (right == 1)).all(1)),
+        ("The network correctly said no to all 7", (wins == 0) & (guesses.max(1) < 0.1)
          & (np.array([len(b.moves) for b in data.test_boards]) > 12)),
-        ("a mistake: missed the win", (wins == 1) & ~top_right & (guesses.max(1) < 0.5)),
+        ("A mistake: the network missed it",
+         (wins == 1) & ~top_right & (guesses.max(1) < 0.5)),
     ]  # fmt: skip
     return [(title, int(np.flatnonzero(mask)[0])) for title, mask in rules], guesses
+
+
+def what_wins(answers: np.ndarray) -> str:
+    """'no column wins', 'column 5 wins' or 'columns 5 and 7 win'."""
+    cols = [str(c + 1) for c in np.flatnonzero(answers)]
+    if not cols:
+        return "no column wins"
+    if len(cols) == 1:
+        return f"column {cols[0]} wins"
+    return f"columns {', '.join(cols[:-1])} and {cols[-1]} win"
 
 
 def chart_examples(net, data) -> None:
@@ -159,9 +170,61 @@ def chart_examples(net, data) -> None:
             if right[col] == 1:
                 ax.text(col, -0.9, "wins", ha="center", va="top", fontsize=8.5, weight="bold")
         ax.plot([-0.5, 6.5], [6.0, 6.0], color=AXIS, linewidth=0.8)
-        ax.set_title(f"{title}\n{NAME[board.current_player]} to move", fontsize=10)
+        mover = NAME[board.current_player].capitalize()
+        ax.set_title(f"{mover} to move: {what_wins(right)}\n{title}", fontsize=10)
     save(fig, "04-examples.png")
     return examples
+
+
+def chart_two_questions(net, mine: wm.Scores, theirs: wm.Scores) -> None:
+    """One board asked both questions, and how well each is answered on the test cards."""
+    board = Board.from_moves(TWO_QUESTIONS_MOVES)
+    x = wm.encode(board)
+    guesses = nw.predict(net, np.array([x, wm.swap_sides(x)]))
+    fig, (left, right) = plt.subplots(
+        1, 2, figsize=(9.4, 5.4), constrained_layout=True, width_ratios=[1.45, 1]
+    )  # fmt: skip
+
+    left.set_xlim(-0.8, 6.8)
+    left.set_ylim(-1.6, 11.4)
+    left.set_aspect("equal")
+    left.axis("off")
+    draw_board(left, board, 0, 0)
+    strips = [
+        (8.9, "Where can I (red) win?", SERIES[0], guesses[0]),
+        (6.1, "Where could my opponent (yellow) win?", SERIES[1], guesses[1]),
+    ]
+    for base_y, label, color, g in strips:
+        left.add_patch(plt.Rectangle((-0.5, base_y + 1.95), 0.3, 0.3, facecolor=color,
+                                     edgecolor="none"))  # fmt: skip
+        left.text(-0.05, base_y + 2.1, label, va="center", fontsize=9, color=INK)
+        for col in range(COLS):
+            height = 1.4 * g[col]
+            left.add_patch(plt.Rectangle((col - 0.32, base_y), 0.64, max(height, 0.02),
+                                         facecolor=color, edgecolor="none"))  # fmt: skip
+            left.text(col, base_y + 0.05 + height, f"{g[col]:.2f}", ha="center", va="bottom",
+                      fontsize=8, color=INK)  # fmt: skip
+        left.plot([-0.5, 6.5], [base_y, base_y], color=AXIS, linewidth=0.8)
+    for player in (board.current_player, 3 - board.current_player):
+        for col in board.winning_moves(player):
+            left.text(col, -0.9, f"{NAME[player]} wins", ha="center", va="top", fontsize=8.5,
+                      weight="bold")  # fmt: skip
+    left.set_title("One board, both questions (red to move)")
+
+    questions = [("Question 1\nwhere can I win?", mine),
+                 ("Question 2\nwhere could my\nopponent win?", theirs)]  # fmt: skip
+    values = [100 * s.found for _, s in questions]
+    right.bar([0, 1], values, width=0.55, color=SERIES[:2])
+    for xpos, value in enumerate(values):
+        right.text(xpos, value + 1.5, f"{value:.1f}%", ha="center", fontsize=9, color=INK)
+    right.set_xticks([0, 1], [f"{name}\n(false alarms {s.false_alarms:.1%})"
+                              for name, s in questions])  # fmt: skip
+    right.set_xlim(-0.7, 1.7)
+    right.set_ylim(0, 108)
+    right.set_ylabel("% of positions that have a win")
+    right.set_title("Test positions: finds the winning column")
+    right.grid(axis="x")
+    save(fig, "04-two-questions.png")
 
 
 def chart_hidden_neurons(net) -> list[tuple[int, int, float]]:
@@ -297,7 +360,9 @@ def main() -> None:
 
     their_view = wm.swap_sides(data.test_inputs)
     their_answers = np.array([wm.answers(b, 3 - b.current_player) for b in data.test_boards])
-    say(f"opponent's view, never practised: {wm.score(nw.predict(net, their_view), their_answers)}")
+    theirs = wm.score(nw.predict(net, their_view), their_answers)
+    say(f"opponent's view, never practised: {theirs}")
+    chart_two_questions(net, history[-1].test, theirs)
 
     neural = wm.NeuralPlayer(net, seed=1)
     say("\nGames (1,000 each):")

@@ -72,7 +72,7 @@ The test numbers are nearly as good as the practice numbers. Every test position
 
 ![Four test positions with the network's 7 guesses drawn as bars above the columns. One winning column, found with 1.00. Two winning columns, both found with 0.99 and 1.00. No winning column, all guesses 0.00. A mistake: yellow can win in column 1 with a diagonal, but every guess is near 0](images/04-examples.png)
 
-**How to read this picture.** Each board is a test position. The bars above it are the network's 7 guesses, one per column, from 0 (no bar) to 1 (full bar). "wins" under a column marks a column that really wins.
+**How to read this picture.** Each board is a test position. The bars above it are the network's 7 guesses, one per column, from 0 (no bar) to 1 (full bar). "wins" under a column marks a column that really wins. Each title says whose turn it is and which columns really win, then what the network made of it.
 
 - **Top left:** red wins in column 5 by stacking a fourth piece. The network says 1.00 there and about 0 everywhere else.
 - **Top right:** two winning columns (5 and 7), both found.
@@ -160,6 +160,16 @@ x = encode(board)
 mine = predict(net, x)  # where can I win?
 theirs = predict(net, swap_sides(x))  # where could my opponent win?
 ```
+
+So before every move, the player asks the network **two questions about the same board**: once as it is, and once with the halves swapped. No piece is dropped into any column to find out. The network looks at the current board and answers for all 7 columns at once.
+
+![Left: one board with red to move. Red has three in a row along the bottom and can win in column 4; yellow has three stacked in column 7 and could win there. Above the board are two rows of bars. Question 1, "where can I (red) win?", says 0.95 for column 4 and 0.00 everywhere else. Question 2, "where could my opponent (yellow) win?", says 0.99 for column 7 and 0.00 everywhere else. Right: a bar chart over the test positions. Question 1 finds the winning column 92.9% of the time, with 0.9% false alarms. Question 2 finds it 93.2% of the time, with 1.1% false alarms](images/04-two-questions.png)
+
+**How to read this picture.**
+- **Left: one board, both questions.** Red is to move. The blue bars answer question 1, "where can I win?": 0.95 for column 4, where red would complete four along the bottom. The orange bars answer question 2, on the same board with the halves swapped: 0.99 for column 7, where yellow would complete a stack of four. Under the board, "red wins" and "yellow wins" mark the right answers.
+- **Right: how well each question is answered** across all 30,000 test positions. Each bar is "finds the win": of the positions where that player has a winning move, how often the network's top column is a real win. The false alarms are under each bar: how often it claims a win that isn't there.
+
+On this board both questions find a win. The network doesn't decide which matters more. The player's rules do, and winning comes first (section 11).
 
 The network never practised on swapped boards, and some of them can't even happen in a real game: the "player to move" has one more piece than the opponent. On the test positions it still finds the opponent's winning column **93.2%** of the time, with 1.1% false alarms. About as good as for its own moves.
 
